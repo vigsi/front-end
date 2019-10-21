@@ -16,11 +16,16 @@
 
 import * as React from 'react'
 import { DateTime } from 'luxon'
+
+import Paper from '@material-ui/core/Paper'
+
 import { Header } from './Header'
 import { Playback } from './Playback'
 import MiniChart from './MiniChart'
+import Map from './Map'
 import { PlaybackService } from './PlaybackService'
-import Paper from '@material-ui/core/Paper'
+import { Coordinate } from './geom'
+
 
 import './app.less'
 
@@ -31,7 +36,9 @@ type AppState = {
     /**
      * The current time that has been selected by the user.
      */
-    time: DateTime
+    time: DateTime;
+
+    target: Coordinate | undefined;
 }
 
 /**
@@ -50,14 +57,18 @@ export class App extends React.Component<{}, AppState> {
 
         this.start = DateTime.local().minus({ years: 100 });
         this.end = DateTime.local();
+        // We use a long-lived object as a service that will
+        // handle automatically moving time forward to back
+        // according to the user's interaction.
         this.playbackService = new PlaybackService(
             (time: DateTime) => { this.setDisplayTime(time)},
             () => this.getDisplayTime()
-        )
+        );
 
         this.state = {
-            time: DateTime.local().minus({ years: 100 })
-        }
+            time: DateTime.local().minus({ years: 100 }),
+            target: undefined
+        };
     }
 
     /**
@@ -87,12 +98,21 @@ export class App extends React.Component<{}, AppState> {
                     <div className="grid-wrapper">
                         <div id="item1">
                             {this.state.time.toISO()}
+                            { this.state.target && this.state.target.lat }
+                            { this.state.target && this.state.target.lon }
+                            <Map
+                                target={this.state.target}
+                                onTargetMoved={(target: Coordinate) => {
+                                    this.setState({ target });
+                                }}
+                            />
                         </div>
                         <div id="item2">
                             <MiniChart direction="vertical" />
                         </div>
                         <div id="item3">
                             <MiniChart direction="horizontal" />
+                            
                         </div>
                         <div id="item3">Legend</div>
                     </div>
