@@ -50,11 +50,11 @@ type PlaybackProps = {
   onStopPlayback: () => void,
 }
 
-function diffInHours(start: DateTime, end: DateTime): number {
+const diffInHours = (start: DateTime, end: DateTime): number => {
     return end.diff(start, 'hours').toObject().hours || 0
 }
 
-function fromDiffInHours(start: DateTime, diffHours: number): DateTime {
+const fromDiffInHours = (start: DateTime, diffHours: number): DateTime => {
     return start.plus({ hours: diffHours })
 }
 
@@ -70,40 +70,47 @@ export const Playback: React.FunctionComponent<PlaybackProps> = ({ start, end, v
         }
     }
 
+    const valueText = (value: number): string => {
+        return fromDiffInHours(start, value).toLocaleString(DateTime.DATETIME_SHORT);
+    }
+
     return (
         <div id="playback-container">
+
             <Slider
                 min={0}
                 max={diffInHours(start, end)}
                 value={diffInHours(start, value)}
                 onChange={handleSliderChange}
+                valueLabelFormat={valueText}
+                valueLabelDisplay="on"
                 id="playback-slider"/>
             <div id="playback-controls">
                 <TextField
-                            id="date"
-                            type="date"
-                            defaultValue={start.toISODate()}
-                            InputLabelProps={{
-                                shrink: true,
-                            }}
-                        />
-                        <div>
-                            <IconButton aria-label="stop" onClick={() => onStopPlayback() }>
-                                <StopIcon />
-                            </IconButton>
-                            <IconButton aria-label="start" onClick={() => onStartPlayback() }>
-                                <PlayArrowIcon />
-                            </IconButton>
-                        </div>
+                    id="date"
+                    type="date"
+                    defaultValue={start.toISODate()}
+                    InputLabelProps={{
+                        shrink: true,
+                    }}
+                />
+                <div>
+                    <IconButton aria-label="stop" onClick={() => onStopPlayback() }>
+                        <StopIcon />
+                    </IconButton>
+                    <IconButton aria-label="start" onClick={() => onStartPlayback() }>
+                        <PlayArrowIcon />
+                    </IconButton>
+                </div>
 
-                        <TextField
-                            id="date"
-                            type="date"
-                            defaultValue={end.toISODate()}
-                            InputLabelProps={{
-                                shrink: true,
-                            }}
-                        />
+                <TextField
+                    id="date"
+                    type="date"
+                    defaultValue={end.toISODate()}
+                    InputLabelProps={{
+                        shrink: true,
+                    }}
+                />
             </div>
         </div>
     )

@@ -16,13 +16,13 @@
 
 import * as React from 'react'
 import { DateTime } from 'luxon'
-
 import Paper from '@material-ui/core/Paper'
 
 import { Header } from './Header'
 import { Playback } from './Playback'
 import MiniChart from './MiniChart'
 import Map from './Map'
+import { Legend } from './Legend'
 import { PlaybackService } from './PlaybackService'
 import { Coordinate } from './geom'
 
@@ -51,6 +51,7 @@ export class App extends React.Component<{}, AppState> {
     start: DateTime
     end: DateTime
     playbackService: PlaybackService
+    theme: any
 
     constructor(props: {}) {
         super(props)
@@ -90,6 +91,7 @@ export class App extends React.Component<{}, AppState> {
     }
 
     render() {
+        const items = [{name: 'a', color: 'red'}, {name: 'b', color: 'blue'}]
         return (
             <div>
                 <Header title="VIGSI" />
@@ -97,7 +99,6 @@ export class App extends React.Component<{}, AppState> {
                 <Paper>
                     <div className="grid-wrapper">
                         <div id="item1">
-                            {this.state.time.toISO()}
                             { this.state.target && this.state.target.lat }
                             { this.state.target && this.state.target.lon }
                             <Map
@@ -114,7 +115,9 @@ export class App extends React.Component<{}, AppState> {
                             <MiniChart direction="horizontal" />
                             
                         </div>
-                        <div id="item3">Legend</div>
+                        <div id="item3">
+                            <Legend seriesItems={items}/>
+                        </div>
                     </div>
                 </Paper>
     
