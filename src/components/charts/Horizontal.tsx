@@ -31,25 +31,30 @@ export default class Horizontal extends React.Component<ChartProps> {
       const stepSize = xSize / 3;
       const start = this.props.region.pt1.x;
 
-      const data = [
-        {x: start, value: 13000},
-        {x: start + stepSize, value: 16500},
-        {x: start + 2 * stepSize, value: 13000},
-        {x: start + 3 * stepSize, value: 16500}
-      ];
+      const lines = this.props.seriesDefs.map(def => {
+        const data = [
+          {x: start, value: Math.random() * 20000},
+          {x: start + stepSize, value: Math.random() * 20000},
+          {x: start + 2 * stepSize, value: Math.random() * 20000},
+          {x: start + 3 * stepSize, value: Math.random() * 20000}
+        ];
+
+        return (<VictoryLine
+            data={data}
+            // data accessor for x values
+            x="x"
+            // data accessor for y values
+            y="value"
+            style={{data: {stroke: def.color}}}
+          />);
+      });
 
       return (
         <div id="horizontal-chart">
           <VictoryChart theme={VictoryTheme.material} height={80} width={this.props.mapWidth} padding={{top: 12, left: 0, bottom: 0, right: 0}} containerComponent={<VictoryContainer responsive={false}/>}>
             <VictoryAxis domain={this.props.region.xDomain()} tickValues={[]} label="radiation"/>
             <VictoryAxis dependentAxis={true} domain={this.props.valueDomain} tickLabelComponent={<VictoryLabel dx={-20} textAnchor="end" />}/>
-            <VictoryLine
-              data={data}
-                          // data accessor for x values
-                          x="x"
-                          // data accessor for y values
-                          y="value"
-            />
+            {lines}
           </VictoryChart>
         </div>);
     );

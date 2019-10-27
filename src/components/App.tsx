@@ -25,13 +25,15 @@ import Horizontal from './charts/Horizontal'
 import Map from './Map'
 import { Legend } from './Legend'
 import { PlaybackService } from './PlaybackService'
+import { DataSourceService, DataSeriesDefinition, DataSeriesId } from './DataSourceService'
 import { Coordinate, Region } from './geom'
-
 
 import './app.less'
 
 /**
- * Defines the application state.
+ * Defines the application state. This state is owned by the main application
+ * so that it flows down into all of the children. The children update these
+ * items through callbacks.
  */
 type AppState = {
     /**
@@ -39,9 +41,31 @@ type AppState = {
      */
     time: DateTime;
 
+    /**
+     * The time span for which we have available data.
+     */
+    availableTimespan: {start: DateTime, end: DateTime} | undefined;
+
+    /**
+     * The location on the map that the user has selected so that
+     * we can show the x and y graphs at that location.
+     */
     target: Coordinate;
 
+    /**
+     * The region on the map that we are currently showing.
+     */
     region: Region;
+    
+    /**
+     * The selected data series, if any
+     */
+    selectedSeriesId: DataSeriesId | undefined;
+
+    /**
+     * The definition of data series
+     */
+    seriesDefs: DataSeriesDefinition[];
 }
 
 /**
@@ -51,16 +75,18 @@ type AppState = {
  * we are the root of the application.
  */
 export class App extends React.Component<{}, AppState> {
-    start: DateTime
-    end: DateTime
-    playbackService: PlaybackService
-    theme: any
+    /**
+     * The service that controls automated progression of time.
+     */
+    playbackService: PlaybackService;
+
+    /**
+     * The source of data for our application.
+     */
+    dataSourceService: DataSourceService;
 
     constructor(props: {}) {
         super(props)
-
-        this.start = DateTime.local().minus({ years: 100 });
-        this.end = DateTime.local();
         // We use a long-lived object as a service that will
         // handle automatically moving time forward to back
         // according to the user's interaction.
@@ -69,11 +95,35 @@ export class App extends React.Component<{}, AppState> {
             () => this.getDisplayTime()
         );
 
+        // Similar to the playback service, we use this as a long-lived
+        // service to fetch and cache the data we want to display.
+        this.dataSourceService = new DataSourceService();
+
         this.state = {
             time: DateTime.local().minus({ years: 100 }),
+            availableTimespan: undefined,
             target: new Coordinate(-11718716, 4869217),
-            region: new Region(new Coordinate(-13486347, 2817851), new Coordinate(-8594378, 6731427))
+            region: new Region(new Coordinate(-13486347, 2817851), new Coordinate(-8594378, 6731427)),
+            seriesDefs: []
         };
+
+        // As the data source for the series to that we can populate
+        // the controls on our UI
+        this.dataSourceService.getDataSeries()
+            .then(seriesDefs => {
+                let newState = { seriesDefs };
+                
+                // Since this is the first time we have a data series
+                // then select the first item as our initial selection
+                if (seriesDefs.length > 0) {
+                    newState.selectedSeriesId = seriesDefs[0].id;
+                }
+
+                this.setState(newState);
+            });
+
+        this.dataSourceService.getDataTimespan()
+            .then(availableTimespan => this.setState({ availableTimespan }));
     }
 
     /**
@@ -95,11 +145,19 @@ export class App extends React.Component<{}, AppState> {
     }
 
     render() {
-        const items = [{name: 'a', color: 'red'}, {name: 'b', color: 'blue'}]
-        const valueDomain = [0, 20000];
+        const valueDomain: [number, number] = [0, 20000];
         return (
             <div>
-                <Header title="VIGSI" seriesInfos={["name"]}/>
+                <Header
+                    seriesDefs={this.state.seriesDefs}
+                    selectedSeriesId={this.state.selectedSeriesId}
+                    onSeriesSelected={(id: DataSeriesId) => {
+                        this.setState({ selectedSeriesId: id })
+                    }}
+                    target={this.state.target}
+                    region={this.state.region}
+                    time={this.state.time}
+                />
     
                 <Paper id="main-content">
                     <div className="main-content__row">
@@ -116,22 +174,21 @@ export class App extends React.Component<{}, AppState> {
                             />
                         </div>
                         <div className="main-content__right">
-                            <Vertical region={this.state.region} target={this.state.target} valueDomain={valueDomain}/>
+                            <Vertical region={this.state.region} target={this.state.target} valueDomain={valueDomain} seriesDefs={this.state.seriesDefs}/>
                         </div>
                     </div>
                     <div className="main-content__row">
                         <div className="main-content__left">
-                            <Horizontal region={this.state.region} target={this.state.target} valueDomain={valueDomain} mapWidth={500}/>
+                            <Horizontal region={this.state.region} target={this.state.target} valueDomain={valueDomain} mapWidth={500} seriesDefs={this.state.seriesDefs}/>
                         </div>
                         <div className="main-content__right">
-                            <Legend seriesItems={items}/>
+                            <Legend seriesDefs={this.state.seriesDefs}/>
                         </div>
                     </div>
                 </Paper>
     
                 <Playback
-                    start={this.start}
-                    end={this.end}
+                    availableTimespan={this.state.availableTimespan}
                     value={this.state.time}
                     onChangeValue={(time: DateTime) => this.setDisplayTime(time)}
                     onStartPlayback={() => {
@@ -141,11 +198,6 @@ export class App extends React.Component<{}, AppState> {
                         this.playbackService.stop()
                     }}
                 />
-
-                <div>
-                    <p>Target <span>{this.state.target && this.state.target.toString()}</span></p>
-                    <p>Region <span>{this.state.region && this.state.region.toString()}</span></p>
-                </div>
             </div>
         )
     }

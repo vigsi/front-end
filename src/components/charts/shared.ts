@@ -15,6 +15,7 @@
 */
 
 import { Coordinate, Region } from '../geom'
+import { DataSeriesDefinition } from '../DataSourceService'
 
 export type ChartProps = {
     target: Coordinate;
@@ -22,4 +23,5 @@ export type ChartProps = {
     valueDomain: [number, number];
     mapWidth: number;
     mapHeight: number;
+    seriesDefs: DataSeriesDefinition[]
 }

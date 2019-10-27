@@ -13,11 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
+
+import { toStringHDMS } from 'ol/coordinate'
 export class Coordinate {
     constructor(public x: number, public y: number) {}
 
     toString(): string {
-        return `X: ${this.x} Y: ${this.y}`
+        return `(${this.x.toFixed()}, ${this.y.toFixed()})`
+    }
+
+    toHDMSString(): string {
+        return toStringHDMS(this.toArray())
     }
 
     toArray(): number[] {
@@ -30,6 +36,10 @@ export class Region {
 
     toString(): string {
         return `[${this.pt1.toString()}, ${this.pt2.toString()}]`
+    }
+
+    toHDMSString(): string {
+        return `[${this.pt1.toHDMSString()}; ${this.pt2.toHDMSString()}]`
     }
 
     yLength(): number {

@@ -21,16 +21,11 @@ import ListItemText from '@material-ui/core/ListItemText'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
 import SvgIcon, { SvgIconProps } from '@material-ui/core/SvgIcon'
 import './legend.less'
-
-type Series = {
-    color: string,
-    name: string
-}
+import { DataSeriesDefinition } from './DataSourceService'
 
 type LegendProps = {
-    seriesItems: Series[]
+    seriesDefs: DataSeriesDefinition[]
 }
-
 
 function HomeIcon(props: SvgIconProps) {
     return (
@@ -40,15 +35,15 @@ function HomeIcon(props: SvgIconProps) {
     );
   }
 
-export const Legend: React.FunctionComponent<LegendProps> = ({ seriesItems }) => {
+export const Legend: React.FunctionComponent<LegendProps> = ({ seriesDefs }) => {
     //span style={{color: item.color}}>•</span>
-    const listItems = seriesItems.map(item => {
+    const listItems = seriesDefs.map(def => {
         return (
-            <ListItem key={item.name}>
+            <ListItem key={def.id}>
                 <ListItemIcon>
-                    <HomeIcon style={{color: item.color}}/>
+                    <HomeIcon style={{color: def.color}}/>
                 </ListItemIcon>
-                <ListItemText>{item.name}</ListItemText>
+                <ListItemText>{def.name}</ListItemText>
             </ListItem>
         );
     })

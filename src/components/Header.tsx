@@ -20,19 +20,30 @@ import MenuItem from '@material-ui/core/MenuItem'
 import Select from '@material-ui/core/Select'
 import Toolbar from '@material-ui/core/Toolbar'
 import Typography from '@material-ui/core/Typography'
+import { DateTime } from 'luxon'
+import { Coordinate, Region } from './geom'
+import { DataSeriesDefinition, DataSeriesId } from './DataSourceService'
 import './header.less'
 
 type HeaderProps = {
-  title: string,
-  seriesInfos: string[]
-  onSeriesSelected: (id: string) => void
+  seriesDefs: DataSeriesDefinition[];
+  selectedSeriesId: DataSeriesId | undefined;
+  onSeriesSelected: (id: DataSeriesId) => void;
+  target: Coordinate;
+  region: Region;
+  time: DateTime;
+
 }
 
-export const Header: React.FunctionComponent<HeaderProps> = ({ title, seriesInfos, onSeriesSelected }) =>
+export const Header: React.FunctionComponent<HeaderProps> = ({ seriesDefs, selectedSeriesId, onSeriesSelected, target, region, time }) =>
 {
-  const menuItems = seriesInfos.map(info => {
-    return (<MenuItem value={info} key={info}>{info}</MenuItem>);
+  const menuItems = seriesDefs.map(def => {
+    return (<MenuItem value={def.id} key={def.id}>{def.name}</MenuItem>);
   });
+
+  const onSelectChanged = (event: React.ChangeEvent) => {
+    onSeriesSelected(event.target.value);
+  }
 
   return (
     <Appbar position="fixed">
@@ -41,11 +52,20 @@ export const Header: React.FunctionComponent<HeaderProps> = ({ title, seriesInfo
               VIGSI
         </Typography>
         <div className="header-dataseries">
-          <Select
-            value={"name"}>
-            {menuItems}
-          </Select>
+          {selectedSeriesId && (
+                <Select
+                  value={selectedSeriesId}
+                  onChange={onSelectChanged}>
+                  {menuItems}
+              </Select>
+          )}
         </div>
+        <Typography className="header-tracker" align="right" style={{ flex: 1 }}>
+          <span>{target.toString()}</span>
+          <span>in</span>
+          <span>{region.toString()}</span>
+          <span>{time.toLocaleString(DateTime.DATETIME_SHORT)}</span>
+        </Typography>
       </Toolbar>
     </Appbar>);
 }

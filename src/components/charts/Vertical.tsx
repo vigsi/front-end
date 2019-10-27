@@ -31,26 +31,30 @@ export default class Vertical extends React.Component<ChartProps> {
       const stepSize = ySize / 3;
       const start = this.props.region.pt1.y;
 
-      const data = [
-        {y: start, value: 13000},
-        {y: start + stepSize, value: 16500},
-        {y: start + 2 * stepSize, value: 13000},
-        {y: start + 3 * stepSize, value: 16500}
-      ];
+      const lines = this.props.seriesDefs.map(def => {
+        const data = [
+          {y: start, value: Math.random() * 20000},
+          {y: start + stepSize, value: Math.random() * 20000},
+          {y: start + 2 * stepSize, value: Math.random() * 20000},
+          {y: start + 3 * stepSize, value: Math.random() * 20000}
+        ];
 
-      //padding={{top: 10, left: 0, bottom: 0, right: 0}}
+        return (<VictoryLine
+            horizontal={true}
+            data={data}
+            // data accessor for x values
+            x="y"
+            // data accessor for y values
+            y="value"
+            style={{data: {stroke: def.color}}}
+          />);
+      });
+
       return (
         <VictoryChart theme={VictoryTheme.material} height={400} width={80} padding={{top: 0, left: 12, bottom: 0, right: 0}}  containerComponent={<VictoryContainer responsive={false}/>}>
           <VictoryAxis domain={this.props.region.yDomain()} orientation="right"/>
           <VictoryAxis dependentAxis={true} domain={[0, 20000]} invertAxis={true} tickLabelComponent={<VictoryLabel dx={-20} angle={90} textAnchor="end" />}/>
-          <VictoryLine
-            horizontal={true}
-            data={data}
-                        // data accessor for x values
-                        x="y"
-                        // data accessor for y values
-                        y="value"
-          />
+          {lines}
       </VictoryChart>);
     }
 }
