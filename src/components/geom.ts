@@ -15,5 +15,37 @@
  * limitations under the License.
 */
 export class Coordinate {
-    constructor(public lat: number, public lon: number) {}
+    constructor(public x: number, public y: number) {}
+
+    toString(): string {
+        return `X: ${this.x} Y: ${this.y}`
+    }
+
+    toArray(): number[] {
+        return [this.x, this.y];
+    }
+}
+
+export class Region {
+    constructor(public pt1: Coordinate, public pt2: Coordinate) {}
+
+    toString(): string {
+        return `[${this.pt1.toString()}, ${this.pt2.toString()}]`
+    }
+
+    yLength(): number {
+        return this.pt2.y - this.pt1.y;
+    }
+
+    yDomain(): [number, number] {
+        return [this.pt1.y, this.pt2.y];
+    }
+
+    xLength(): number {
+        return this.pt2.x - this.pt1.x;
+    }
+
+    xDomain(): [number, number] {
+        return [this.pt1.x, this.pt2.x];
+    }
 }

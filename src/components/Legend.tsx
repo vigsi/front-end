@@ -35,7 +35,7 @@ type LegendProps = {
 function HomeIcon(props: SvgIconProps) {
     return (
       <SvgIcon {...props}>
-        <circle r="3" transform="translate(3, 5)"/>
+        <rect width="12" height="12" transform="translate(3, 7)"/>
       </SvgIcon>
     );
   }
@@ -44,7 +44,7 @@ export const Legend: React.FunctionComponent<LegendProps> = ({ seriesItems }) =>
     //span style={{color: item.color}}>•</span>
     const listItems = seriesItems.map(item => {
         return (
-            <ListItem>
+            <ListItem key={item.name}>
                 <ListItemIcon>
                     <HomeIcon style={{color: item.color}}/>
                 </ListItemIcon>

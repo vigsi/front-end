@@ -54,16 +54,17 @@ export default class MiniChart extends React.Component<Props> {
             },
           ];
 
-        let width = 800
-        let height = 40
+        let width = 150
+        let height = 800
         if (this.props.direction === "vertical") {
-            width = 40
-            height = 800
+            width = 800
+            height = 150
         }
 
         return (
-            <ResponsiveContainer>
             <LineChart
+                width={width}
+                height={height}
                 layout={this.props.direction}
                 data={data}
             >
@@ -74,7 +75,6 @@ export default class MiniChart extends React.Component<Props> {
                 <Line dataKey="pv" stroke="#8884d8" />
                 <Line dataKey="uv" stroke="#82ca9d" />
             </LineChart>
-            </ResponsiveContainer>
         );
     }
 }

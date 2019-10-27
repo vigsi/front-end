@@ -14,24 +14,12 @@
  * limitations under the License.
 */
 
-#main-content {
-    display: table;
+import { Coordinate, Region } from '../geom'
+
+export type ChartProps = {
+    target: Coordinate;
+    region: Region;
+    valueDomain: [number, number];
+    mapWidth: number;
+    mapHeight: number;
 }
-
-.main-content__row {
-    display: table-row;
-}
-
-.main-content__left {
-  display: table-cell;
-}
-
-.main-content__right {
-    display: table-cell;
-    width: 150px;
-}
-
-
-//.grid-wrapper > div {
-//    background-color: lime;
-//}

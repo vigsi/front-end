@@ -20,11 +20,12 @@ import Paper from '@material-ui/core/Paper'
 
 import { Header } from './Header'
 import { Playback } from './Playback'
-import MiniChart from './MiniChart'
+import Vertical from './charts/Vertical'
+import Horizontal from './charts/Horizontal'
 import Map from './Map'
 import { Legend } from './Legend'
 import { PlaybackService } from './PlaybackService'
-import { Coordinate } from './geom'
+import { Coordinate, Region } from './geom'
 
 
 import './app.less'
@@ -38,7 +39,9 @@ type AppState = {
      */
     time: DateTime;
 
-    target: Coordinate | undefined;
+    target: Coordinate;
+
+    region: Region;
 }
 
 /**
@@ -68,7 +71,8 @@ export class App extends React.Component<{}, AppState> {
 
         this.state = {
             time: DateTime.local().minus({ years: 100 }),
-            target: undefined
+            target: new Coordinate(-11718716, 4869217),
+            region: new Region(new Coordinate(-13486347, 2817851), new Coordinate(-8594378, 6731427))
         };
     }
 
@@ -92,30 +96,34 @@ export class App extends React.Component<{}, AppState> {
 
     render() {
         const items = [{name: 'a', color: 'red'}, {name: 'b', color: 'blue'}]
+        const valueDomain = [0, 20000];
         return (
             <div>
                 <Header title="VIGSI" />
     
-                <Paper>
-                    <div className="grid-wrapper">
-                        <div id="item1">
-                            { this.state.target && this.state.target.lat }
-                            { this.state.target && this.state.target.lon }
+                <Paper id="main-content">
+                    <div className="main-content__row">
+                        <div className="main-content__left">
                             <Map
                                 target={this.state.target}
-                                onTargetMoved={(target: Coordinate) => {
+                                extent={this.state.region}
+                                onTargetChanged={(target: Coordinate) => {
                                     this.setState({ target });
+                                }}
+                                onExtentChanged={(region: Region) => {
+                                    this.setState({ region })
                                 }}
                             />
                         </div>
-                        <div id="item2">
-                            <MiniChart direction="vertical" />
+                        <div className="main-content__right">
+                            <Vertical region={this.state.region} target={this.state.target} valueDomain={valueDomain}/>
                         </div>
-                        <div id="item3">
-                            <MiniChart direction="horizontal" />
-                            
+                    </div>
+                    <div className="main-content__row">
+                        <div className="main-content__left">
+                            <Horizontal region={this.state.region} target={this.state.target} valueDomain={valueDomain} mapWidth={500}/>
                         </div>
-                        <div id="item3">
+                        <div className="main-content__right">
                             <Legend seriesItems={items}/>
                         </div>
                     </div>
@@ -133,6 +141,11 @@ export class App extends React.Component<{}, AppState> {
                         this.playbackService.stop()
                     }}
                 />
+
+                <div>
+                    <p>Target <span>{this.state.target && this.state.target.toString()}</span></p>
+                    <p>Region <span>{this.state.region && this.state.region.toString()}</span></p>
+                </div>
             </div>
         )
     }

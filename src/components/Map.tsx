@@ -25,12 +25,14 @@ import Stamen from 'ol/source/Stamen'
 import {Modify} from 'ol/interaction'
 import {Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style'
 import 'ol/ol.css'
-import {Coordinate} from './geom'
+import {Coordinate, Region} from './geom'
 import './map.less'
 
 type MapProps = {
-    target: Point | undefined;
-    onTargetMoved: (coord: Coordinate) => void;
+    target: Coordinate;
+    extent: Region;
+    onTargetChanged: (coord: Coordinate) => void;
+    onExtentChanged: (region: Region) => void;
 }
 
 type MapState = {
@@ -58,7 +60,7 @@ export default class App extends React.Component<MapProps, MapState> {
             })
           });
 
-        const markerPoint = new Point([-11718716, 4869217]);
+        const markerPoint = new Point(this.props.target.toArray());
         const markerSource = new VectorSource({
             features: [
                 new Feature({
@@ -87,14 +89,23 @@ export default class App extends React.Component<MapProps, MapState> {
             })
         })
 
+        const view = new View({
+            //extent: [this.props.extent[0].x, this.props.extent[0].y, this.props.extent[1].x, this.props.extent[1].y],
+            center: [-11718716.28195593, 4869217.172379018], //Boulder, CO
+            zoom: 3,
+        });
+        view.on('change', (evt: Event) => {
+            const extent = view.calculateExtent();
+            const coord1 = new Coordinate(extent[0], extent[1]);
+            const coord2 = new Coordinate(extent[2], extent[3]);
+            this.props.onExtentChanged(new Region(coord1, coord2));
+        })
+
         const map = new Map({
             target: this.refs.mapContainer,
             layers: [backgroundLayer, markerLayer],
-            view: new View({
-                center: [-11718716.28195593, 4869217.172379018], //Boulder, CO
-                zoom: 3,
-            })
-          });
+            view: view 
+        });
 
         const modify = new Modify({source: markerSource});
         modify.on('modifyend', (evt: ModifyEvent) => {
@@ -106,7 +117,7 @@ export default class App extends React.Component<MapProps, MapState> {
             const feature = evt.features.getArray()[0];
             if (feature.getGeometry() == markerPoint) {
                 const coord = new Coordinate(markerPoint.getCoordinates()[0], markerPoint.getCoordinates()[1]);
-                this.props.onTargetMoved(coord);
+                this.props.onTargetChanged(coord);
             }
         })
         map.addInteraction(modify);
