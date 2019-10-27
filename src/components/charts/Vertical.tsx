@@ -40,7 +40,7 @@ export default class Vertical extends React.Component<ChartProps> {
 
       //padding={{top: 10, left: 0, bottom: 0, right: 0}}
       return (
-        <VictoryChart theme={VictoryTheme.material} height={400} width={80} padding={{top: 0, left: 10, bottom: 0, right: 0}}  containerComponent={<VictoryContainer responsive={false}/>}>
+        <VictoryChart theme={VictoryTheme.material} height={400} width={80} padding={{top: 0, left: 12, bottom: 0, right: 0}}  containerComponent={<VictoryContainer responsive={false}/>}>
           <VictoryAxis domain={this.props.region.yDomain()} orientation="right"/>
           <VictoryAxis dependentAxis={true} domain={[0, 20000]} invertAxis={true} tickLabelComponent={<VictoryLabel dx={-20} angle={90} textAnchor="end" />}/>
           <VictoryLine

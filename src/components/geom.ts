@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2019 Alex Niu, Garret Fick, Jitendra Rathour, Zhimen Shen
  *

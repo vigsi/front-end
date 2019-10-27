@@ -15,11 +15,37 @@
 */
 
 import * as React from 'react'
+import Appbar from '@material-ui/core/Appbar'
+import MenuItem from '@material-ui/core/MenuItem'
+import Select from '@material-ui/core/Select'
+import Toolbar from '@material-ui/core/Toolbar'
+import Typography from '@material-ui/core/Typography'
+import './header.less'
 
 type HeaderProps = {
   title: string,
+  seriesInfos: string[]
+  onSeriesSelected: (id: string) => void
 }
 
-export const Header: React.FunctionComponent<HeaderProps> = ({ title }) => <h2>{ title }</h2>
+export const Header: React.FunctionComponent<HeaderProps> = ({ title, seriesInfos, onSeriesSelected }) =>
+{
+  const menuItems = seriesInfos.map(info => {
+    return (<MenuItem value={info} key={info}>{info}</MenuItem>);
+  });
 
-const el = <Header title="Welcome!" />
+  return (
+    <Appbar position="fixed">
+      <Toolbar id="header-toolbar">
+        <Typography variant="h6" noWrap>
+              VIGSI
+        </Typography>
+        <div className="header-dataseries">
+          <Select
+            value={"name"}>
+            {menuItems}
+          </Select>
+        </div>
+      </Toolbar>
+    </Appbar>);
+}

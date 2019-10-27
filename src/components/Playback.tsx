@@ -18,6 +18,7 @@ import * as React from 'react'
 import { DateTime } from 'luxon'
 import Slider from '@material-ui/core/Slider'
 import IconButton from '@material-ui/core/IconButton'
+import Paper from '@material-ui/core/Paper'
 import TextField from '@material-ui/core/TextField'
 import PlayArrowIcon from '@material-ui/icons/PlayArrow'
 import StopIcon from '@material-ui/icons/Stop'
@@ -75,43 +76,45 @@ export const Playback: React.FunctionComponent<PlaybackProps> = ({ start, end, v
     }
 
     return (
-        <div id="playback-container">
+        <Paper>
+            <div id="playback-container">
 
-            <Slider
-                min={0}
-                max={diffInHours(start, end)}
-                value={diffInHours(start, value)}
-                onChange={handleSliderChange}
-                valueLabelFormat={valueText}
-                valueLabelDisplay="on"
-                id="playback-slider"/>
-            <div id="playback-controls">
-                <TextField
-                    id="date"
-                    type="date"
-                    defaultValue={start.toISODate()}
-                    InputLabelProps={{
-                        shrink: true,
-                    }}
-                />
-                <div>
-                    <IconButton aria-label="stop" onClick={() => onStopPlayback() }>
-                        <StopIcon />
-                    </IconButton>
-                    <IconButton aria-label="start" onClick={() => onStartPlayback() }>
-                        <PlayArrowIcon />
-                    </IconButton>
+                <Slider
+                    min={0}
+                    max={diffInHours(start, end)}
+                    value={diffInHours(start, value)}
+                    onChange={handleSliderChange}
+                    valueLabelFormat={valueText}
+                    valueLabelDisplay="on"
+                    id="playback-slider"/>
+                <div id="playback-controls">
+                    <TextField
+                        id="date"
+                        type="date"
+                        defaultValue={start.toISODate()}
+                        InputLabelProps={{
+                            shrink: true,
+                        }}
+                    />
+                    <div>
+                        <IconButton aria-label="stop" onClick={() => onStopPlayback() }>
+                            <StopIcon />
+                        </IconButton>
+                        <IconButton aria-label="start" onClick={() => onStartPlayback() }>
+                            <PlayArrowIcon />
+                        </IconButton>
+                    </div>
+
+                    <TextField
+                        id="date"
+                        type="date"
+                        defaultValue={end.toISODate()}
+                        InputLabelProps={{
+                            shrink: true,
+                        }}
+                    />
                 </div>
-
-                <TextField
-                    id="date"
-                    type="date"
-                    defaultValue={end.toISODate()}
-                    InputLabelProps={{
-                        shrink: true,
-                    }}
-                />
             </div>
-        </div>
+        </Paper>
     )
 }

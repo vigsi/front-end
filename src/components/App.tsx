@@ -99,7 +99,7 @@ export class App extends React.Component<{}, AppState> {
         const valueDomain = [0, 20000];
         return (
             <div>
-                <Header title="VIGSI" />
+                <Header title="VIGSI" seriesInfos={["name"]}/>
     
                 <Paper id="main-content">
                     <div className="main-content__row">
