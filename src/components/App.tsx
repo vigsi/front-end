@@ -15,7 +15,7 @@
 */
 
 import * as React from 'react'
-import { DateTime } from 'luxon'
+import { DateTime, Interval } from 'luxon'
 import Paper from '@material-ui/core/Paper'
 
 import { Header } from './Header'
@@ -44,7 +44,7 @@ type AppState = {
     /**
      * The time span for which we have available data.
      */
-    availableTimespan: {start: DateTime, end: DateTime} | undefined;
+    availableTimespan: Interval;
 
     /**
      * The location on the map that the user has selected so that
@@ -66,6 +66,16 @@ type AppState = {
      * The definition of data series
      */
     seriesDefs: DataSeriesDefinition[];
+
+    /**
+     * The width of our window.
+     */
+    width: number;
+
+    /**
+     * The height of our window.
+     */
+    height: number;
 }
 
 /**
@@ -85,8 +95,18 @@ export class App extends React.Component<{}, AppState> {
      */
     dataSourceService: DataSourceService;
 
+    /**
+     * The setTimeout ID that we use as a part of throttling the rate of change
+     * for window resizing. We use that so that we can fill the screen but don't update
+     * too fast for every pixel change.
+     */
+    resizeTimeoutId : number | null;
+
     constructor(props: {}) {
-        super(props)
+        super(props);
+
+        this.resizeTimeoutId = null;
+
         // We use a long-lived object as a service that will
         // handle automatically moving time forward to back
         // according to the user's interaction.
@@ -100,29 +120,35 @@ export class App extends React.Component<{}, AppState> {
         this.dataSourceService = new DataSourceService();
 
         this.state = {
-            time: DateTime.local().minus({ years: 100 }),
-            availableTimespan: undefined,
+            // Undefined are annoying so to avoid that, just initialize to now. We'll
+            // update shortly
+            time: DateTime.local(),
+            availableTimespan: Interval.fromDateTimes(DateTime.local(), DateTime.local()
+            ),
             target: new Coordinate(-11718716, 4869217),
             region: new Region(new Coordinate(-13486347, 2817851), new Coordinate(-8594378, 6731427)),
-            seriesDefs: []
+            seriesDefs: [],
+            selectedSeriesId: undefined,
+            width: 1000,
+            height: 1000,
         };
 
         // As the data source for the series to that we can populate
         // the controls on our UI
         this.dataSourceService.getDataSeries()
             .then(seriesDefs => {
-                let newState = { seriesDefs };
+                let newState: AppState = { seriesDefs };
                 
                 // Since this is the first time we have a data series
                 // then select the first item as our initial selection
                 if (seriesDefs.length > 0) {
-                    newState.selectedSeriesId = seriesDefs[0].id;
+                    newState = { ...newState, selectedSeriesId: seriesDefs[0].id };
                 }
 
                 this.setState(newState);
             });
 
-        this.dataSourceService.getDataTimespan()
+        this.dataSourceService.getDataInterval()
             .then(availableTimespan => this.setState({ availableTimespan }));
     }
 
@@ -144,8 +170,43 @@ export class App extends React.Component<{}, AppState> {
         return this.state.time;
     }
 
+     /**
+     * CCalculate the desired size of the map component. We want the graph to
+     * fill as much space as possible but have no scroll bars. 
+     */
+    updateMapDimensions() {
+        if (this.resizeTimeoutId !== null) {
+            window.clearTimeout(this.resizeTimeoutId);
+            this.resizeTimeoutId = null;
+        }
+
+        this.resizeTimeoutId = window.setTimeout(() => {
+            console.log({ width: window.innerWidth, height: window.innerHeight });
+            this.setState({ width: window.innerWidth, height: window.innerHeight });
+        }, 50);
+    }
+
+    /**
+     * Handle the event that the component mounted.
+     */
+    componentDidMount() {
+        this.updateMapDimensions();
+        window.addEventListener("resize", this.updateMapDimensions.bind(this));
+    }
+
+    /**
+     * Handle the event that the component will unmount.
+     */
+    componentWillUnmount() {
+        window.removeEventListener("resize", this.updateMapDimensions.bind(this));
+    }
+
     render() {
         const valueDomain: [number, number] = [0, 20000];
+
+        const mapWidth = Math.max(100, this.state.width - 140);
+        const mapHeight = Math.max(100, this.state.height - 250);
+
         return (
             <div>
                 <Header
@@ -171,15 +232,17 @@ export class App extends React.Component<{}, AppState> {
                                 onExtentChanged={(region: Region) => {
                                     this.setState({ region })
                                 }}
+                                width={mapWidth}
+                                height={mapHeight}
                             />
                         </div>
                         <div className="main-content__right">
-                            <Vertical region={this.state.region} target={this.state.target} valueDomain={valueDomain} seriesDefs={this.state.seriesDefs}/>
+                            <Vertical region={this.state.region} target={this.state.target} valueDomain={valueDomain} seriesDefs={this.state.seriesDefs} mapWidth={mapWidth} mapHeight={mapHeight}/>
                         </div>
                     </div>
                     <div className="main-content__row">
                         <div className="main-content__left">
-                            <Horizontal region={this.state.region} target={this.state.target} valueDomain={valueDomain} mapWidth={500} seriesDefs={this.state.seriesDefs}/>
+                            <Horizontal region={this.state.region} target={this.state.target} valueDomain={valueDomain} seriesDefs={this.state.seriesDefs} mapWidth={mapWidth} mapHeight={mapHeight}/>
                         </div>
                         <div className="main-content__right">
                             <Legend seriesDefs={this.state.seriesDefs}/>
@@ -188,7 +251,7 @@ export class App extends React.Component<{}, AppState> {
                 </Paper>
     
                 <Playback
-                    availableTimespan={this.state.availableTimespan}
+                    availableInterval={this.state.availableTimespan}
                     value={this.state.time}
                     onChangeValue={(time: DateTime) => this.setDisplayTime(time)}
                     onStartPlayback={() => {

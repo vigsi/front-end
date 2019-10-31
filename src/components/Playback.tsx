@@ -15,7 +15,7 @@
 */
 
 import * as React from 'react'
-import { DateTime } from 'luxon'
+import { DateTime, Interval } from 'luxon'
 import Slider from '@material-ui/core/Slider'
 import IconButton from '@material-ui/core/IconButton'
 import Paper from '@material-ui/core/Paper'
@@ -27,11 +27,15 @@ import SkipPrevious from '@material-ui/icons/SkipPrevious'
 import StopIcon from '@material-ui/icons/Stop'
 import './playback.less'
 
+type PlaybackState = {
+    selectedInterval: Interval
+}
+
 type PlaybackProps = {
   /**
    * The time span for which we have data
    */
-  availableTimespan: { start: DateTime, end: DateTime } | undefined
+  availableInterval: Interval
   /**
    * The currently selected date time in the range
    */
@@ -50,17 +54,11 @@ type PlaybackProps = {
   onStopPlayback: () => void,
 }
 
-const diffInHours = (start: DateTime | undefined, end: DateTime | undefined): number => {
-    if (!start || !end) {
-        return 0;
-    }
+const diffInHours = (start: DateTime, end: DateTime): number => {
     return end.diff(start, 'hours').toObject().hours || 0
 }
 
-const fromDiffInHours = (start: DateTime | undefined, diffHours: number): DateTime => {
-    if (!start) {
-        return 0;
-    }
+const fromDiffInHours = (start: DateTime, diffHours: number): DateTime => {
     return start.plus({ hours: diffHours })
 }
 
@@ -68,76 +66,100 @@ const fromDiffInHours = (start: DateTime | undefined, diffHours: number): DateTi
  * A component that defines the set of controls for controlling time.
  * @param param0 The props for the component.
  */
-export const Playback: React.FunctionComponent<PlaybackProps> = ({ availableTimespan, value, onChangeValue, onStartPlayback, onStopPlayback }) => {
-    const handleSliderChange = (event: any, newValue: number | number[]) => {
-        // It should never be an array since we only have one point
-        if (!Array.isArray(newValue)) {
-            onChangeValue(fromDiffInHours(availableTimespan && availableTimespan.start, newValue))
+export class Playback extends React.Component<PlaybackProps, PlaybackState> {
+    constructor(props: PlaybackProps) {
+        super(props);
+
+        this.state = {
+            // We initially allow the entire interval as our selected interval
+            selectedInterval: props.availableInterval
+        };
+    }
+
+    onShowMinimumDate() {
+        this.setState({
+            selectedInterval: Interval.fromDateTimes(this.props.availableInterval.start, this.state.selectedInterval.end)
+        });
+    }
+
+    onShowMaximumDate() {
+        this.setState({
+            selectedInterval: Interval.fromDateTimes(this.state.selectedInterval.start, this.props.availableInterval.end)
+        });
+    }
+
+    render() {
+        const { availableInterval, value, onChangeValue, onStopPlayback, onStartPlayback } = this.props;
+        const handleSliderChange = (event: any, newValue: number | number[]) => {
+            // It should never be an array since we only have one point
+            if (!Array.isArray(newValue)) {
+                onChangeValue(fromDiffInHours(availableInterval.start, newValue))
+            }
         }
-    }
-
-    const valueText = (value: number): string => {
-        return fromDiffInHours(availableTimespan && availableTimespan.start, value).toLocaleString(DateTime.DATETIME_SHORT);
-    }
-
-    return (
-        <Paper>
-            <div id="playback-container">
-                <Slider
-                    min={0}
-                    max={diffInHours(availableTimespan && availableTimespan.start, availableTimespan && availableTimespan.end)}
-                    value={diffInHours(availableTimespan && availableTimespan.start, value)}
-                    onChange={handleSliderChange}
-                    valueLabelFormat={valueText}
-                    valueLabelDisplay="on"
-                    id="playback-slider"/>
-                <div id="playback-controls">
-                    <div>
-                        <Tooltip title="Set to earliest time">
-                            <IconButton aria-label="set to earliest time" onClick={() => onStopPlayback() }>
-                                <SkipPrevious />
-                            </IconButton>
-                        </Tooltip>
-                        <TextField
-                            id="date"
-                            type="date"
-                            value={availableTimespan && availableTimespan.start.toISODate() || ""}
-                            InputLabelProps={{
-                                shrink: true,
-                            }}
-                        />
-                    </div>
-                    <div>
-                        <Tooltip title="Stop automatic time progression">
-                            <IconButton aria-label="stop" onClick={() => onStopPlayback() }>
-                                <StopIcon />
-                            </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Start automatic time progression">
-                            <IconButton aria-label="start" onClick={() => onStartPlayback() }>
-                                <PlayArrowIcon />
-                            </IconButton>
-                        </Tooltip>
-                    </div>
-
-                    <div>
-                        <TextField
-                            id="date"
-                            type="date"
-                            value={availableTimespan && availableTimespan.end.toISODate() || ""}
-                            onChange={() => {}}
-                            InputLabelProps={{
-                                shrink: true,
-                            }}
-                        />                        
-                        <Tooltip title="Set to latest time">
-                            <IconButton aria-label="set to latest time" onClick={() => onStopPlayback() }>
-                                <SkipNext />
-                            </IconButton>
-                        </Tooltip>
+    
+        const valueText = (value: number): string => {
+            return fromDiffInHours(availableInterval.start, value).toLocaleString(DateTime.DATETIME_SHORT);
+        }
+    
+        return (
+            <Paper>
+                <div id="playback-container">
+                    <Slider
+                        min={0}
+                        max={diffInHours(this.state.selectedInterval.start, this.state.selectedInterval.end)}
+                        value={diffInHours(this.state.selectedInterval.start, value)}
+                        onChange={handleSliderChange}
+                        valueLabelFormat={valueText}
+                        valueLabelDisplay="on"
+                        id="playback-slider"/>
+                    <div id="playback-controls">
+                        <div>
+                            <Tooltip title="Set to earliest time">
+                                <IconButton aria-label="set to earliest time" onClick={() => this.onShowMinimumDate() }>
+                                    <SkipPrevious />
+                                </IconButton>
+                            </Tooltip>
+                            <TextField
+                                id="date"
+                                type="date"
+                                value={this.state.selectedInterval.start.toISODate() || ""}
+                                InputLabelProps={{
+                                    shrink: true,
+                                }}
+                            />
+                        </div>
+                        <div>
+                            <Tooltip title="Stop automatic time progression">
+                                <IconButton aria-label="stop" onClick={() => onStopPlayback() }>
+                                    <StopIcon />
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Start automatic time progression">
+                                <IconButton aria-label="start" onClick={() => onStartPlayback() }>
+                                    <PlayArrowIcon />
+                                </IconButton>
+                            </Tooltip>
+                        </div>
+    
+                        <div>
+                            <TextField
+                                id="date"
+                                type="date"
+                                value={this.state.selectedInterval.end.toISODate() || ""}
+                                onChange={() => {}}
+                                InputLabelProps={{
+                                    shrink: true,
+                                }}
+                            />                        
+                            <Tooltip title="Set to latest time">
+                                <IconButton aria-label="set to latest time"  onClick={() => this.onShowMaximumDate() }>
+                                    <SkipNext />
+                                </IconButton>
+                            </Tooltip>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </Paper>
-    )
+            </Paper>
+        );
+    }
 }

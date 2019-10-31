@@ -40,6 +40,7 @@ export default class Vertical extends React.Component<ChartProps> {
         ];
 
         return (<VictoryLine
+            key={def.id}
             horizontal={true}
             data={data}
             // data accessor for x values
@@ -51,7 +52,7 @@ export default class Vertical extends React.Component<ChartProps> {
       });
 
       return (
-        <VictoryChart theme={VictoryTheme.material} height={400} width={80} padding={{top: 0, left: 12, bottom: 0, right: 0}}  containerComponent={<VictoryContainer responsive={false}/>}>
+        <VictoryChart theme={VictoryTheme.material} height={this.props.mapHeight} width={80} padding={{top: 0, left: 12, bottom: 0, right: 0}}  containerComponent={<VictoryContainer responsive={false}/>}>
           <VictoryAxis domain={this.props.region.yDomain()} orientation="right"/>
           <VictoryAxis dependentAxis={true} domain={[0, 20000]} invertAxis={true} tickLabelComponent={<VictoryLabel dx={-20} angle={90} textAnchor="end" />}/>
           {lines}

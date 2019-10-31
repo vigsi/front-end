@@ -33,6 +33,8 @@ type MapProps = {
     extent: Region;
     onTargetChanged: (coord: Coordinate) => void;
     onExtentChanged: (region: Region) => void;
+    width: number;
+    height: number;
 }
 
 type MapState = {
@@ -45,11 +47,18 @@ export default class App extends React.Component<MapProps, MapState> {
     }
 
     render() {
-        // We return a single div that will contain the map. It has
-        // not content until the component is mounted and we make sure
-        // that it always exists.
+        // body margin: 20 on right and left = 40 px
+        // right chart width = 80px
+        // total is width - 120 px
+
+        const mapWidth = this.props.width;
+        const mapHeight = this.props.height;
+        if (this.state && this.state.map) {
+            this.state.map.setSize([mapWidth, mapHeight]);
+        }
+        
         return (
-            <div ref="mapContainer" id="mapContainer"></div>
+            <div ref="mapContainer" id="mapContainer" style={{ width: mapWidth, height: mapHeight}}></div>
         );
     }
 
@@ -126,31 +135,6 @@ export default class App extends React.Component<MapProps, MapState> {
         this.setState({ 
           map: map
         });
-    
 
     }
-
-    componentDidUpdate(prevProps: MapProps, prevState: MapState) {
-        /*this.state.featuresLayer.setSource(
-          new ol.source.Vector({
-            features: this.props.routes
-          })
-        );*/
-    }
-    
-    /*handleMapClick(event) {
-
-        // create WKT writer
-        var wktWriter = new ol.format.WKT();
-
-        // derive map coordinate (references map from Wrapper Component state)
-        var clickedCoordinate = this.state.map.getCoordinateFromPixel(event.pixel);
-
-        // create Point geometry from clicked coordinate
-        var clickedPointGeom = new ol.geom.Point( clickedCoordinate );
-
-        // write Point geometry to WKT with wktWriter
-        var clickedPointWkt = wktWriter.writeGeometry( clickedPointGeom );
-
-    }*/
 }

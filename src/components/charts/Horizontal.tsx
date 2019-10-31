@@ -40,6 +40,7 @@ export default class Horizontal extends React.Component<ChartProps> {
         ];
 
         return (<VictoryLine
+            key={def.id}
             data={data}
             // data accessor for x values
             x="x"

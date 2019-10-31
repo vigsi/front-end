@@ -1,6 +1,3 @@
-import { string } from "prop-types";
-import { DateTime } from "luxon";
-
 /*
  * Copyright 2019 Alex Niu, Garret Fick, Jitendra Rathour, Zhimen Shen
  *
@@ -16,6 +13,8 @@ import { DateTime } from "luxon";
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
+
+import { DateTime, Interval } from "luxon";
 
 export type DataSeriesId = string;
 
@@ -44,19 +43,21 @@ export class DataSourceService {
      */
     getDataSeries() : Promise<DataSeriesDefinition[]> {
         return Promise.resolve([
-            { id: "id1", name: "a", color: "red" },
-            { id: "id2", name: "b", color: "blue" },
-            { id: "id3", name: "c", color: "yellow" },
+            { id: "meas", name: "Measured", color: "#aa2e25" },
+            { id: "arima", name: "ARIMA", color: "#1769aa" },
+            { id: "nn", name: "Neural Network", color: "#00695f" },
         ]);
     }
 
     /**
-     * Gets the total data range that is available.
+     * Gets the total data time range that is available.
      */
-    getDataTimespan() : Promise<{start: DateTime, end: DateTime}> {
-        return Promise.resolve({
-            start: DateTime.local().minus({ years: 100 }),
-            end: DateTime.local(),
-        });
+    getDataInterval() : Promise<Interval> {
+        return Promise.resolve(
+            Interval.fromDateTimes(
+                DateTime.local().minus({ years: 100 }),
+                DateTime.local()
+            )
+        );
     }
 }
