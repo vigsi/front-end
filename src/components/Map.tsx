@@ -54,7 +54,11 @@ export default class App extends React.Component<MapProps, MapState> {
         const mapWidth = this.props.width;
         const mapHeight = this.props.height;
         if (this.state && this.state.map) {
-            this.state.map.setSize([mapWidth, mapHeight]);
+            const curSize = this.state.map.getSize();
+            if (! curSize || curSize[0] != mapWidth || curSize[1] != mapHeight) {
+                this.state.map.setSize([mapWidth, mapHeight]);
+            }
+            
         }
         
         return (

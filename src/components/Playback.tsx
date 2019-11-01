@@ -109,8 +109,6 @@ export class Playback extends React.Component<PlaybackProps, PlaybackState> {
                         max={diffInHours(this.state.selectedInterval.start, this.state.selectedInterval.end)}
                         value={diffInHours(this.state.selectedInterval.start, value)}
                         onChange={handleSliderChange}
-                        valueLabelFormat={valueText}
-                        valueLabelDisplay="on"
                         id="playback-slider"/>
                     <div id="playback-controls">
                         <div>

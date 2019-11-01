@@ -45,7 +45,7 @@ export class DataSourceService {
         return Promise.resolve([
             { id: "meas", name: "Measured", color: "#aa2e25" },
             { id: "arima", name: "ARIMA", color: "#1769aa" },
-            { id: "nn", name: "Neural Network", color: "#00695f" },
+            { id: "nn", name: "Neural Net", color: "#00695f" },
         ]);
     }
 

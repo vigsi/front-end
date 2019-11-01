@@ -205,7 +205,7 @@ export class App extends React.Component<{}, AppState> {
         const valueDomain: [number, number] = [0, 20000];
 
         const mapWidth = Math.max(100, this.state.width - 140);
-        const mapHeight = Math.max(100, this.state.height - 250);
+        const mapHeight = Math.max(100, this.state.height - 220);
 
         return (
             <div>
