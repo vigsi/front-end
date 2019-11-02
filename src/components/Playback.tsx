@@ -97,10 +97,6 @@ export class Playback extends React.Component<PlaybackProps, PlaybackState> {
             }
         }
     
-        const valueText = (value: number): string => {
-            return fromDiffInHours(availableInterval.start, value).toLocaleString(DateTime.DATETIME_SHORT);
-        }
-    
         return (
             <Paper>
                 <div id="playback-container">

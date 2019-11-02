@@ -12,7 +12,7 @@
     "test:watch": "jest --watch",
     "type-check": "tsc --noEmit",
     "type-check:watch": "tsc --noEmit --watch",
-    "lint": "tslint -c tslint.json '*.ts?(x)'"
+    "lint": "tslint -c tslint.json --project ."
   },
   "author": "",
   "license": "Apache-2.0",
@@ -36,6 +36,7 @@
   "dependencies": {
     "@material-ui/core": "^4.5.1",
     "@material-ui/icons": "^4.5.1",
+    "@reactivex/rxjs": "^6.5.3",
     "@types/victory": "^33.0.0",
     "luxon": "^1.19.3",
     "ol": "^6.0.1",

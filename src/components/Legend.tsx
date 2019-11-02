@@ -36,7 +36,6 @@ function HomeIcon(props: SvgIconProps) {
   }
 
 export const Legend: React.FunctionComponent<LegendProps> = ({ seriesDefs }) => {
-    //span style={{color: item.color}}>•</span>
     const listItems = seriesDefs.map(def => {
         return (
             <ListItem key={def.id}>

@@ -15,6 +15,8 @@
 */
 
 import { DateTime, Interval } from "luxon";
+import { Observable } from "rxjs";
+import { DataCache } from './DataCache';
 
 export type DataSeriesId = string;
 
@@ -38,26 +40,55 @@ export type DataSeriesDefinition = {
  */
 export class DataSourceService {
 
+    private dataCaches: Map<DataSeriesId, DataCache>;
+
+    constructor(private host: string, private timeObservable: Observable<DateTime>) {
+        this.dataCaches = new Map();
+        timeObservable.subscribe((time) => this.updateCache(time));
+    }
+
     /**
      * Get a list of the available data series that we can display.
      */
     getDataSeries() : Promise<DataSeriesDefinition[]> {
-        return Promise.resolve([
+        const sources = [
             { id: "meas", name: "Measured", color: "#aa2e25" },
             { id: "arima", name: "ARIMA", color: "#1769aa" },
             { id: "nn", name: "Neural Net", color: "#00695f" },
-        ]);
+        ];
+
+        // Only populate the data caches once
+        if (this.dataCaches.size === 0) {
+            sources.forEach(source => {
+                this.dataCaches.set(source.id, new DataCache(this.host, source.id))
+                
+            });
+        }
+
+        return Promise.resolve(sources);
     }
 
     /**
      * Gets the total data time range that is available.
      */
     getDataInterval() : Promise<Interval> {
+        const now = DateTime.utc().set({ minute: 0, second: 0, millisecond: 0 });
+        const start = now.minus({ years: 100 })
+        DateTime.utc().set({minute: 0, second: 0, millisecond: 0});
         return Promise.resolve(
             Interval.fromDateTimes(
-                DateTime.local().minus({ years: 100 }),
-                DateTime.local()
+                start,
+                now
             )
         );
+    }
+
+    get(id: DataSeriesId, timestamp: DateTime): Promise<any> {
+        const cache = this.dataCaches.get(id);
+        return cache && cache.get(timestamp) || Promise.reject("No such data series id");
+    }
+
+    private updateCache(currentTime: DateTime) {
+        this.dataCaches.forEach(cache => cache.onTimeChanged(currentTime));
     }
 }

@@ -16,6 +16,7 @@
 
 import * as React from 'react'
 import { DateTime, Interval } from 'luxon'
+import { BehaviorSubject } from 'rxjs'
 import Paper from '@material-ui/core/Paper'
 
 import { Header } from './Header'
@@ -25,7 +26,7 @@ import Horizontal from './charts/Horizontal'
 import Map from './Map'
 import { Legend } from './Legend'
 import { PlaybackService } from './PlaybackService'
-import { DataSourceService, DataSeriesDefinition, DataSeriesId } from './DataSourceService'
+import { DataSourceService, DataSeriesDefinition, DataSeriesId } from './data/DataSourceService'
 import { Coordinate, Region } from './geom'
 
 import './app.less'
@@ -96,6 +97,11 @@ export class App extends React.Component<{}, AppState> {
     dataSourceService: DataSourceService;
 
     /**
+     * A subject for listening changes to the current time.
+     */
+    timeSubject: BehaviorSubject<DateTime>;
+
+    /**
      * The setTimeout ID that we use as a part of throttling the rate of change
      * for window resizing. We use that so that we can fill the screen but don't update
      * too fast for every pixel change.
@@ -107,24 +113,30 @@ export class App extends React.Component<{}, AppState> {
 
         this.resizeTimeoutId = null;
 
+        const time = DateTime.local();
+        this.timeSubject = new BehaviorSubject<DateTime>(time);
+
         // We use a long-lived object as a service that will
         // handle automatically moving time forward to back
         // according to the user's interaction.
         this.playbackService = new PlaybackService(
-            (time: DateTime) => { this.setDisplayTime(time)},
+            (time: DateTime) => {
+                this.setDisplayTime(time)
+            },
             () => this.getDisplayTime()
         );
 
         // Similar to the playback service, we use this as a long-lived
         // service to fetch and cache the data we want to display.
-        this.dataSourceService = new DataSourceService();
+        this.dataSourceService = new DataSourceService('//localhost:8080', this.timeSubject);
+
+        const initialTime = DateTime.utc().set({minute: 0, second: 0, millisecond: 0});
 
         this.state = {
             // Undefined are annoying so to avoid that, just initialize to now. We'll
             // update shortly
-            time: DateTime.local(),
-            availableTimespan: Interval.fromDateTimes(DateTime.local(), DateTime.local()
-            ),
+            time,
+            availableTimespan: Interval.fromDateTimes(initialTime, initialTime),
             target: new Coordinate(-11718716, 4869217),
             region: new Region(new Coordinate(-13486347, 2817851), new Coordinate(-8594378, 6731427)),
             seriesDefs: [],
@@ -149,13 +161,21 @@ export class App extends React.Component<{}, AppState> {
             });
 
         this.dataSourceService.getDataInterval()
-            .then(availableTimespan => this.setState({ availableTimespan }));
+            .then(availableTimespan => {
+                this.setState({
+                    availableTimespan,
+                    // Once we have an available timespan, set the initial time
+                    // to the beginning
+                    time: availableTimespan.start
+                })
+            });
     }
 
     /**
      * Updates the user selected time in the state.
      */
     setDisplayTime(value: DateTime) {
+        this.timeSubject.next(value);
         this.setState({
             time: value
         });
@@ -181,7 +201,6 @@ export class App extends React.Component<{}, AppState> {
         }
 
         this.resizeTimeoutId = window.setTimeout(() => {
-            console.log({ width: window.innerWidth, height: window.innerHeight });
             this.setState({ width: window.innerWidth, height: window.innerHeight });
         }, 50);
     }
@@ -206,6 +225,8 @@ export class App extends React.Component<{}, AppState> {
 
         const mapWidth = Math.max(100, this.state.width - 140);
         const mapHeight = Math.max(100, this.state.height - 220);
+
+        const data = this.state.selectedSeriesId && this.dataSourceService.get(this.state.selectedSeriesId, this.state.time) || Promise.reject("No selected series")
 
         return (
             <div>
@@ -234,6 +255,7 @@ export class App extends React.Component<{}, AppState> {
                                 }}
                                 width={mapWidth}
                                 height={mapHeight}
+                                data={data}
                             />
                         </div>
                         <div className="main-content__right">

@@ -19,6 +19,7 @@ import { Map, View } from 'ol'
 import Feature from 'ol/Feature'
 import Point from 'ol/geom/Point'
 import TileLayer from 'ol/layer/Tile'
+import { Heatmap as HeatmapLayer } from 'ol/layer'
 import VectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
 import Stamen from 'ol/source/Stamen'
@@ -35,6 +36,7 @@ type MapProps = {
     onExtentChanged: (region: Region) => void;
     width: number;
     height: number;
+    data: any;
 }
 
 type MapState = {
@@ -55,14 +57,16 @@ export default class App extends React.Component<MapProps, MapState> {
         const mapHeight = this.props.height;
         if (this.state && this.state.map) {
             const curSize = this.state.map.getSize();
-            if (! curSize || curSize[0] != mapWidth || curSize[1] != mapHeight) {
+            if (! curSize || curSize[0] !== mapWidth || curSize[1] !== mapHeight) {
                 this.state.map.setSize([mapWidth, mapHeight]);
             }
             
         }
+
+        console.log(this.props.data)
         
         return (
-            <div ref="mapContainer" id="mapContainer" style={{ width: mapWidth, height: mapHeight}}></div>
+            <div ref="mapContainer" id="mapContainer" style={{ width: mapWidth, height: mapHeight}} />
         );
     }
 
@@ -103,8 +107,8 @@ export default class App extends React.Component<MapProps, MapState> {
         })
 
         const view = new View({
-            //extent: [this.props.extent[0].x, this.props.extent[0].y, this.props.extent[1].x, this.props.extent[1].y],
-            center: [-11718716.28195593, 4869217.172379018], //Boulder, CO
+            // Set the initial location to Boulder, CO
+            center: [-11718716.28195593, 4869217.172379018],
             zoom: 3,
         });
         view.on('change', (evt: Event) => {
@@ -115,20 +119,20 @@ export default class App extends React.Component<MapProps, MapState> {
         })
 
         const map = new Map({
+            view,
             target: this.refs.mapContainer,
-            layers: [backgroundLayer, markerLayer],
-            view: view 
+            layers: [backgroundLayer, markerLayer]
         });
 
         const modify = new Modify({source: markerSource});
         modify.on('modifyend', (evt: ModifyEvent) => {
             // We only care if the modify event is for our marker
-            if (evt.features.getLength() != 1) {
+            if (evt.features.getLength() !== 1) {
                 return;
             }
             
             const feature = evt.features.getArray()[0];
-            if (feature.getGeometry() == markerPoint) {
+            if (feature.getGeometry() === markerPoint) {
                 const coord = new Coordinate(markerPoint.getCoordinates()[0], markerPoint.getCoordinates()[1]);
                 this.props.onTargetChanged(coord);
             }
@@ -137,7 +141,7 @@ export default class App extends React.Component<MapProps, MapState> {
     
         // save map and layer references to local state
         this.setState({ 
-          map: map
+          map
         });
 
     }
