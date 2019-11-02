@@ -21,7 +21,7 @@ import ListItemText from '@material-ui/core/ListItemText'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
 import SvgIcon, { SvgIconProps } from '@material-ui/core/SvgIcon'
 import './legend.less'
-import { DataSeriesDefinition } from './DataSourceService'
+import { DataSeriesDefinition } from './data/DataSourceService'
 
 type LegendProps = {
     seriesDefs: DataSeriesDefinition[]

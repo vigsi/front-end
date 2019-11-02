@@ -22,7 +22,7 @@ import Toolbar from '@material-ui/core/Toolbar'
 import Typography from '@material-ui/core/Typography'
 import { DateTime } from 'luxon'
 import { Coordinate, Region } from './geom'
-import { DataSeriesDefinition, DataSeriesId } from './DataSourceService'
+import { DataSeriesDefinition, DataSeriesId } from './data/DataSourceService'
 import './header.less'
 
 type HeaderProps = {

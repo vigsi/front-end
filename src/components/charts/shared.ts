@@ -15,7 +15,7 @@
 */
 
 import { Coordinate, Region } from '../geom'
-import { DataSeriesDefinition } from '../DataSourceService'
+import { DataSeriesDefinition } from '../data/DataSourceService'
 
 export type ChartProps = {
     target: Coordinate;
