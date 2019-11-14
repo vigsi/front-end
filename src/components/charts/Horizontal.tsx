@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Alex Niu, Garret Fick, Jitendra Rathour, Zhimen Shen
+ * Copyright 2019 Alex Niu, Garret Fick, Jitendra Rathour, Zhimin Shen
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,6 +58,5 @@ export default class Horizontal extends React.Component<ChartProps> {
             {lines}
           </VictoryChart>
         </div>);
-    );
-  }
+    }
 }

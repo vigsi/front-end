@@ -14,17 +14,10 @@
  * limitations under the License.
 */
 
-import * as React from 'react'
-import { render, fireEvent, waitForElement } from 'react-testing-library'
+import { DateTime } from "luxon";
 
-import { App } from '../App'
+export interface DataSource {
+    onTimeChanged(currentTime: DateTime): void;
 
-/**
- * Just a simple integration tests
- */
-
-test('App Component renders title', () => {
-  const wrap = render(<App />)
-
-  expect(wrap.getByTestId('Apogee')).toBeInTheDocument()
-})
+    get(timestamp: DateTime): Promise<any>;
+}

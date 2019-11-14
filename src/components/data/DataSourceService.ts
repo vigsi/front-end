@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Alex Niu, Garret Fick, Jitendra Rathour, Zhimen Shen
+ * Copyright 2019 Alex Niu, Garret Fick, Jitendra Rathour, Zhimin Shen
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,9 @@
 
 import { DateTime, Interval } from "luxon";
 import { Observable } from "rxjs";
-import { DataCache } from './DataCache';
+import { DataSource } from './DataSource';
+import { H5DataSource } from "./H5DataSource";
+import { VigsiDataSource } from "./VigsiDataSource";
 
 export type DataSeriesId = string;
 
@@ -40,10 +42,10 @@ export type DataSeriesDefinition = {
  */
 export class DataSourceService {
 
-    private dataCaches: Map<DataSeriesId, DataCache>;
+    private dataSources: Map<DataSeriesId, DataSource>;
 
     constructor(private host: string, private timeObservable: Observable<DateTime>) {
-        this.dataCaches = new Map();
+        this.dataSources = new Map();
         timeObservable.subscribe((time) => this.updateCache(time));
     }
 
@@ -52,16 +54,23 @@ export class DataSourceService {
      */
     getDataSeries() : Promise<DataSeriesDefinition[]> {
         const sources = [
-            { id: "meas", name: "Measured", color: "#aa2e25" },
-            { id: "arima", name: "ARIMA", color: "#1769aa" },
-            { id: "nn", name: "Neural Net", color: "#00695f" },
+            //{ id: "meas", name: "Measured", color: "#aa2e25", type: "vigsi" },
+            //{ id: "arima", name: "ARIMA", color: "#1769aa", type: "vigsi" },
+            //{ id: "nn", name: "Neural Net", color: "#00695f", type: "vigsi" },
+            { id: "h5", name: "NREL", color: "#aa2e25", type: "h5"},
         ];
 
         // Only populate the data caches once
-        if (this.dataCaches.size === 0) {
+        if (this.dataSources.size === 0) {
             sources.forEach(source => {
-                this.dataCaches.set(source.id, new DataCache(this.host, source.id))
-                
+                let backend;
+                if (source.type == "h5") {
+                    backend = new H5DataSource()
+                } else {
+                    backend = new VigsiDataSource(this.host, source.id)
+                }
+
+                this.dataSources.set(source.id, backend);
             });
         }
 
@@ -84,11 +93,11 @@ export class DataSourceService {
     }
 
     get(id: DataSeriesId, timestamp: DateTime): Promise<any> {
-        const cache = this.dataCaches.get(id);
+        const cache = this.dataSources.get(id);
         return cache && cache.get(timestamp) || Promise.reject("No such data series id");
     }
 
     private updateCache(currentTime: DateTime) {
-        this.dataCaches.forEach(cache => cache.onTimeChanged(currentTime));
+        this.dataSources.forEach(source => source.onTimeChanged(currentTime));
     }
 }

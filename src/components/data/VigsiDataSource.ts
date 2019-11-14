@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Alex Niu, Garret Fick, Jitendra Rathour, Zhimen Shen
+ * Copyright 2019 Alex Niu, Garret Fick, Jitendra Rathour, Zhimin Shen
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,14 @@
 */
 
 import { DateTime } from "luxon";
-import { string } from "prop-types";
+import { DataSource } from './DataSource';
 
 type UrlInfo = {
     url: string,
     retrieved: DateTime,
 };
 
-export class DataCache {
+export class VigsiDataSource implements DataSource {
     // I would like the key to be not a string, but unfortunately that's not possible.
     // Even worse is I cannot make it a type alias.
     urls: Map<string, UrlInfo>
