@@ -60,7 +60,7 @@ export class H5DataSource implements DataSource {
                 return fetch(rootGroupUrl);
             })
             .catch(err => {
-                console.log(err)
+                console.log(err);
             })
 
         const rootLinksFetch = rootGroupFetch.then(resp => resp && resp.json())
@@ -111,7 +111,6 @@ export class H5DataSource implements DataSource {
                 // The first index is related to the i coordinate
                 // The second index is related to the j coordinate
                 const geojson = Promise.resolve(H5DataSource.mapArrayToGeoJson(xDomain, yDomain, data.value[0]));
-                console.log("data fetch completed")
                 return geojson;
             })
     }
@@ -166,6 +165,7 @@ export class H5DataSource implements DataSource {
                 const pt1 = H5DataSource.fromH5ToLatLon(xMin, yDomain.min + yi * yStep);
                 const pt2 = H5DataSource.fromH5ToLatLon(xMax, yDomain.min + (yi + 1) * yStep);
                 pt2.x += 0.4 * (pt2.x - pt1.x)
+                pt2.y -= 0.4 * (pt1.y - pt2.y)
                 const region = new Region(pt1, pt2);
                 features.push(
                     {

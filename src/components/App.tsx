@@ -202,7 +202,7 @@ export class App extends React.Component<{}, AppState> {
                     })
                 })
                 .catch(err => {
-                    console.log(err)
+                    console.log(err);
                 })
         }
     }

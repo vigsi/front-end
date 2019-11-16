@@ -66,14 +66,14 @@ export class VigsiDataSource implements DataSource {
                             .then(resp => resp.text())
                             .then(text => console.log(text))
                             .catch(err => {
-                                console.log(err)
+                                console.log(err);
                             })
-                        this.data.set(time, futureData)
+                        this.data.set(time, futureData);
                     }
                 })
             })
             .catch(err => {
-                console.log(err)
+                console.log(err);
             });
     }
 

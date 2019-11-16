@@ -46,7 +46,8 @@ type MapState = {
 }
 
 const createStyle = (feature: any) => {
-    const color = d3ScaleChromatic.interpolateBlues(feature.values_.ghi / 600 + 0.5);
+    // The largest value for GHI is about 1100. So we define that as our maximum
+    const color = d3ScaleChromatic.interpolateGreys(1 - (feature.values_.ghi / 1100));
     return new Style({
         fill: new Fill({
           color
@@ -92,7 +93,7 @@ export default class App extends React.Component<MapProps, MapState> {
             source: new Stamen({
                 layer: 'toner'
             }),
-            opacity: 0.3
+            opacity: 0.2
           });
 
         const markerPoint = new Point(this.props.target.toArray());
