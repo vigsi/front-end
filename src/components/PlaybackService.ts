@@ -27,6 +27,11 @@ export enum PlaybackMode {
     Play,
 }
 
+export type PlaybackInstant {
+    current: DateTime;
+    stepSize: Duration;
+}
+
 /**
  * This class is owned by the main application context and
  * is responsible for advancing time according to the current
@@ -49,14 +54,18 @@ export class PlaybackService {
      * @param onValueChanged Callback handler for updating the value by this class.
      * @param onGetValue Callback handler to get the current value.
      */
-    constructor(private onValueChanged: (value: DateTime) => void, private onGetValue: () => DateTime) {
+    constructor(private onValueChanged: (value: PlaybackInstant) => void, private onGetValue: () => DateTime) {
         this.stepSize = Duration.fromObject({hours: 1});
         this.interval = undefined
     }
 
     start() {
         this.interval = window.setInterval(() => {
-            this.onValueChanged(this.onGetValue().plus(this.stepSize))
+            const playbackInterval = {
+                current: this.onGetValue().plus(this.stepSize),
+                stepSize: this.stepSize
+            };
+            this.onValueChanged(playbackInterval)
         }, 2000)
     }
 

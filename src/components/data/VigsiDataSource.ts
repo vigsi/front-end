@@ -17,6 +17,7 @@
 import { DateTime } from "luxon";
 import { DataSource } from './DataSource';
 import { GeoJsonShape } from "./GeoJson";
+import { PlaybackInstant } from "../PlaybackService";
 
 type UrlInfo = {
     url: string,
@@ -28,17 +29,17 @@ export class VigsiDataSource implements DataSource {
     // Even worse is I cannot make it a type alias.
     urls: Map<string, UrlInfo>
 
-    data: Map<string, Promise<any>>
+    data: Map<string, Promise<GeoJsonShape>>
 
     constructor(private host: string, private dataId: string) {
         this.urls = new Map()
         this.data = new Map()
     }
 
-    onTimeChanged(currentTime: DateTime) {
+    onTimeChanged(instant: PlaybackInstant) {
         // Define the time range that we want to query for
-        const startTime = currentTime.toISO();
-        const endTime = currentTime.plus({ days: 2 }).toISO();
+        const startTime = instant.current.toISO();
+        const endTime = instant.current.plus({ days: 2 }).toISO();
 
         const now = DateTime.local()
 
@@ -76,13 +77,13 @@ export class VigsiDataSource implements DataSource {
             });
     }
 
-    get(timestamp: DateTime): GeoJsonShape | undefined {
+    get(timestamp: DateTime): Promise<GeoJsonShape> {
         const str = timestamp.toUTC().toISO();
         const retriever = this.data.get(str);
 
         if (!retriever) {
-            return undefined
+            return Promise.reject("data is not available");
         }
-        return undefined;
+        return retriever;
     }
 }

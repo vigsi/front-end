@@ -15,11 +15,18 @@
 */
 
 export type GeoFeature = {
-    'type': string;
-    'geometry': { 'type': string; coordinates: any };
+    "type": string;
+    "geometry": { "type": string; coordinates: any };
+    "properties": { "ghi": number };
 };
 
 export type GeoJsonShape = {
-    'type': string;
+    "type": string;
+    "crs": {
+        "type": string,
+        "properties": {
+          "name": string
+        }
+      },
     features: GeoFeature[];
 };

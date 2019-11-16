@@ -16,9 +16,29 @@
 
 import { DateTime } from "luxon";
 import { GeoJsonShape } from "./GeoJson";
+import { PlaybackInstant } from "../PlaybackService";
 
+/**
+ * Defines a data source for the application. This is an abstract
+ * concept of some capability to get data that we will display.
+ * 
+ * The primary means to get data is the get function that returns a promise
+ * to return the data in the future. To enable caching implementation
+ * received notifications of when the time changed and the time step
+ * size so that it can try to get data in advance.
+ */
 export interface DataSource {
-    onTimeChanged(currentTime: DateTime): void;
+    /**
+     * Notifies the source of a time change. This source normally would
+     * use this to fetch future data so that it is available when needed.
+     * @param instant Information about the current time and the rate of
+     * progression of time.
+     */
+    onTimeChanged(instant: PlaybackInstant): void;
 
+    /**
+     * Get the data for the particular timestamp.
+     * @param timestamp The timestamp to get data for.
+     */
     get(timestamp: DateTime): Promise<GeoJsonShape>;
 }

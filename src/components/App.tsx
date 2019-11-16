@@ -15,7 +15,7 @@
 */
 
 import * as React from 'react'
-import { DateTime, Interval } from 'luxon'
+import { DateTime, Interval, Duration } from 'luxon'
 import { BehaviorSubject } from 'rxjs'
 import Paper from '@material-ui/core/Paper'
 
@@ -25,7 +25,7 @@ import Vertical from './charts/Vertical'
 import Horizontal from './charts/Horizontal'
 import Map from './Map'
 import { Legend } from './Legend'
-import { PlaybackService } from './PlaybackService'
+import { PlaybackService, PlaybackInstant } from './PlaybackService'
 import { DataSourceService, DataSeriesDefinition, DataSeriesId } from './data/DataSourceService'
 import { Coordinate, Region } from './geom'
 
@@ -41,7 +41,7 @@ type AppState = {
     /**
      * The current time that has been selected by the user.
      */
-    time: DateTime;
+    time: PlaybackInstant;
 
     /**
      * The time span for which we have available data.
@@ -79,6 +79,9 @@ type AppState = {
      */
     height: number;
 
+    /**
+     * The data that we are currently trying to display
+     */
     data: GeoJsonShape | undefined;
 }
 
@@ -102,7 +105,7 @@ export class App extends React.Component<{}, AppState> {
     /**
      * A subject for listening changes to the current time.
      */
-    timeSubject: BehaviorSubject<DateTime>;
+    timeSubject: BehaviorSubject<PlaybackInstant>;
 
     /**
      * The setTimeout ID that we use as a part of throttling the rate of change
@@ -116,15 +119,18 @@ export class App extends React.Component<{}, AppState> {
 
         this.resizeTimeoutId = null;
 
-        const time = DateTime.local();
-        this.timeSubject = new BehaviorSubject<DateTime>(time);
+        const time: PlaybackInstant = {
+            current: DateTime.local(),
+            stepSize: Duration.fromObject({hours: 1})
+        }
+        this.timeSubject = new BehaviorSubject<PlaybackInstant>(time);
 
         // We use a long-lived object as a service that will
         // handle automatically moving time forward to back
         // according to the user's interaction.
         this.playbackService = new PlaybackService(
-            (time: DateTime) => {
-                this.setDisplayTime(time)
+            (value: PlaybackInstant) => {
+                this.setDisplayTime(value)
             },
             () => this.getDisplayTime()
         );
@@ -170,7 +176,10 @@ export class App extends React.Component<{}, AppState> {
                     availableTimespan,
                     // Once we have an available timespan, set the initial time
                     // to the beginning
-                    time: availableTimespan.start
+                    time: {
+                        current: availableTimespan.start,
+                        stepSize: this.state.time.stepSize
+                    }
                 })
             });
     }
@@ -178,7 +187,7 @@ export class App extends React.Component<{}, AppState> {
     /**
      * Updates the user selected time in the state.
      */
-    setDisplayTime(value: DateTime) {
+    setDisplayTime(value: PlaybackInstant) {
         this.timeSubject.next(value);
         this.setState({
             time: value
@@ -186,7 +195,7 @@ export class App extends React.Component<{}, AppState> {
 
         // Fetch the data for the time time frame
         if (this.state.selectedSeriesId) {
-            this.dataSourceService.get(this.state.selectedSeriesId, this.state.time)
+            this.dataSourceService.get(this.state.selectedSeriesId, this.state.time.current)
                 .then(data => {
                     this.setState({
                         data
@@ -204,7 +213,7 @@ export class App extends React.Component<{}, AppState> {
      * view of the current time.
      */
     getDisplayTime(): DateTime {
-        return this.state.time;
+        return this.state.time.current;
     }
 
      /**
@@ -253,7 +262,7 @@ export class App extends React.Component<{}, AppState> {
                     }}
                     target={this.state.target}
                     region={this.state.region}
-                    time={this.state.time}
+                    time={this.state.time.current}
                 />
     
                 <Paper id="main-content">
@@ -289,8 +298,14 @@ export class App extends React.Component<{}, AppState> {
     
                 <Playback
                     availableInterval={this.state.availableTimespan}
-                    value={this.state.time}
-                    onChangeValue={(time: DateTime) => this.setDisplayTime(time)}
+                    value={this.state.time.current}
+                    onChangeValue={(time: DateTime) => {
+                        const instant = {
+                            current: time,
+                            stepSize: this.state.time.stepSize
+                        }
+                        this.setDisplayTime(instant)}
+                    }
                     onStartPlayback={() => {
                         this.playbackService.start()
                     }}

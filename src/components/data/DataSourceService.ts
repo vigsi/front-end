@@ -20,6 +20,7 @@ import { DataSource } from './DataSource';
 import { H5DataSource } from "./H5DataSource";
 import { VigsiDataSource } from "./VigsiDataSource";
 import { GeoJsonShape } from "./GeoJson";
+import { PlaybackInstant } from "../PlaybackService";
 
 export type DataSeriesId = string;
 
@@ -45,7 +46,7 @@ export class DataSourceService {
 
     private dataSources: Map<DataSeriesId, DataSource>;
 
-    constructor(private host: string, private timeObservable: Observable<DateTime>) {
+    constructor(private host: string, private timeObservable: Observable<PlaybackInstant>) {
         this.dataSources = new Map();
         timeObservable.subscribe((time) => this.updateCache(time));
     }
@@ -83,7 +84,11 @@ export class DataSourceService {
      */
     getDataInterval() : Promise<Interval> {
         const now = DateTime.utc().set({ minute: 0, second: 0, millisecond: 0 });
-        const start = now.minus({ years: 100 })
+        const start = DateTime.fromObject({
+            year: 2007,
+            month: 1,
+            day: 1
+        })
         DateTime.utc().set({minute: 0, second: 0, millisecond: 0});
         return Promise.resolve(
             Interval.fromDateTimes(
@@ -98,7 +103,7 @@ export class DataSourceService {
         return cache && cache.get(timestamp) || Promise.reject("No data source with ID: " + id);
     }
 
-    private updateCache(currentTime: DateTime) {
-        this.dataSources.forEach(source => source.onTimeChanged(currentTime));
+    private updateCache(instant: PlaybackInstant) {
+        this.dataSources.forEach(source => source.onTimeChanged(instant));
     }
 }

@@ -26,6 +26,7 @@ import SkipNext from '@material-ui/icons/SkipNext'
 import SkipPrevious from '@material-ui/icons/SkipPrevious'
 import StopIcon from '@material-ui/icons/Stop'
 import './playback.less'
+import { interfaceDeclaration } from '@babel/types'
 
 type PlaybackState = {
     selectedInterval: Interval
@@ -82,6 +83,13 @@ export class Playback extends React.Component<PlaybackProps, PlaybackState> {
         });
     }
 
+    onMiniumDateChanged(evt: any) {
+        const date = DateTime.fromISO(evt.target.value);
+        this.setState({
+            selectedInterval: Interval.fromDateTimes(date, this.state.selectedInterval.end)
+        })
+    }
+
     onShowMaximumDate() {
         this.setState({
             selectedInterval: Interval.fromDateTimes(this.state.selectedInterval.start, this.props.availableInterval.end)
@@ -117,6 +125,7 @@ export class Playback extends React.Component<PlaybackProps, PlaybackState> {
                                 id="date"
                                 type="date"
                                 value={this.state.selectedInterval.start.toISODate() || ""}
+                                onChange={ (evt) => this.onMiniumDateChanged(evt) }
                                 InputLabelProps={{
                                     shrink: true,
                                 }}
