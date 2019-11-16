@@ -20,7 +20,6 @@ import { Map, View } from 'ol'
 import Feature from 'ol/Feature'
 import Point from 'ol/geom/Point'
 import TileLayer from 'ol/layer/Tile'
-import { Heatmap as HeatmapLayer } from 'ol/layer'
 import GeoJSON from 'ol/format/GeoJSON';
 import VectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
@@ -29,6 +28,7 @@ import {Modify} from 'ol/interaction'
 import {Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style'
 import 'ol/ol.css'
 import {Coordinate, Region} from './geom'
+import * as d3ScaleChromatic from 'd3-scale-chromatic';
 import './map.less'
 
 type MapProps = {
@@ -45,18 +45,27 @@ type MapState = {
     map: Map;
 }
 
+const createStyle = (feature: any) => {
+    const color = d3ScaleChromatic.interpolateBlues(feature.values_.ghi / 300);
+    new Style({
+        fill: new Fill({
+          color: 'rgba(0, 0, 255)'
+        })
+    })
+}
+
+const style = 
+
 export default class App extends React.Component<MapProps, MapState> {
-    dataLayer: HeatmapLayer
+    dataLayer: VectorLayer
 
     constructor(props: MapProps) {
         super(props)
 
         // @ts-ignore
-        this.dataLayer = new HeatmapLayer({
+        this.dataLayer = new VectorLayer({
             source: new VectorSource({ features: [] }),
-            weight: (feature: any) => {
-                return feature.values_.ghi / 300;
-            }
+            style: createStyle
         });
     }
 
@@ -84,7 +93,8 @@ export default class App extends React.Component<MapProps, MapState> {
         const backgroundLayer = new TileLayer({
             source: new Stamen({
                 layer: 'toner'
-            })
+            }),
+            opacity: 0.3
           });
 
         const markerPoint = new Point(this.props.target.toArray());
@@ -132,7 +142,7 @@ export default class App extends React.Component<MapProps, MapState> {
             view,
             // @ts-ignore
             target: this.refs.mapContainer,
-            layers: [backgroundLayer, this.dataLayer, markerLayer]
+            layers: [this.dataLayer, backgroundLayer, markerLayer]
         });
 
         const modify = new Modify({source: markerSource});

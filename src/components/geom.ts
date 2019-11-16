@@ -67,3 +67,20 @@ export class Region {
         return [[minX, maxY], [maxX, maxY], [maxX, minY], [minX, minY], [minX, maxY]]
     }
 }
+
+export function rotatePoints(points: number[][], center: number[], angle: number): number[][]  {
+    const s = Math.sin(angle)
+    const c = Math.cos(angle)
+    for (let point of points) {
+        point[0] -= center[0]
+        point[1] -= center[1]
+
+        let xnew = point[0] * c - point[1] * s;
+        let ynew = point[0] * s + point[1] * c;
+
+        point[0] = xnew + center[0]
+        point[1] = ynew + center[1]
+    }
+
+    return points;
+}

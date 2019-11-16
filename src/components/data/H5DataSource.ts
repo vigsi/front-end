@@ -19,7 +19,7 @@ import { DataSource } from './DataSource';
 // @ts-ignore
 import proj4 from 'proj4';
 import { GeoJsonShape } from "./GeoJson";
-import { Coordinate, Region } from "../geom";
+import { Coordinate, Region, rotatePoints } from "../geom";
 
 type Link = {
     class: string;
@@ -121,8 +121,9 @@ export class H5DataSource implements DataSource {
     }
 
     static mapArrayToGeoJson(xDomain: Domain, yDomain: Domain, data: number[][]) {
-        const h5Coords = H5DataSource.fromLatLonToH5(-120, 33)
-        const lonLat = H5DataSource.fromH5ToLatLon(696, 375)
+        // Just keeping for good measure so I don't forget
+        // const h5Coords = H5DataSource.fromLatLonToH5(-120, 33)
+        // const lonLat = H5DataSource.fromH5ToLatLon(696, 375)
 
         const xLen = data.length;
         const yLen = data[0].length;
@@ -132,14 +133,18 @@ export class H5DataSource implements DataSource {
         let features = []
         for (let xi = 0; xi < xLen; xi += 1) {
             const xMin = xDomain.min + xi * xStep
+            const xMax = xDomain.min + (xi + 1) * xStep
             for (let yi = 0; yi < yLen; yi += 1) {
                 const pt1 = H5DataSource.fromH5ToLatLon(xMin, yDomain.min + yi * yStep);
+                const pt2 = H5DataSource.fromH5ToLatLon(xMax, yDomain.min + (yi + 1) * yStep);
+                pt2.x += 0.2 * (pt2.x - pt1.x)
+                const region = new Region(pt1, pt2);
                 features.push(
                     {
                         'type': 'Feature',
                         'geometry': {
-                            "type": "Point",
-                            "coordinates": [ pt1.x, pt1.y ]
+                            'type': 'Polygon',
+                            'coordinates': [region.toClosedPolygon()]
                         },
                         "properties": {
                             "ghi": data[xi][yi]
