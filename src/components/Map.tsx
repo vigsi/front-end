@@ -46,10 +46,10 @@ type MapState = {
 }
 
 const createStyle = (feature: any) => {
-    const color = d3ScaleChromatic.interpolateBlues(feature.values_.ghi / 300);
-    new Style({
+    const color = d3ScaleChromatic.interpolateBlues(feature.values_.ghi / 600 + 0.5);
+    return new Style({
         fill: new Fill({
-          color: 'rgba(0, 0, 255)'
+          color
         })
     })
 }

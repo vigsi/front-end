@@ -89,19 +89,20 @@ export class H5DataSource implements DataSource {
         return "0:1";
     }
 
-    selectStringGeographic() {
-        //let iString = `${this.istart}:${this.istop}:${this.iskip}`;
-        //let jString = `${this.jstart}:${this.jstop}:${this.jskip}`;
-        //return `${iString},${jString}`;
-        return "0:1000:50,0:500:50"
+    selectStringGeographic(xDomain: Domain, yDomain: Domain) {
+        const iSkip = Math.round((xDomain.max - xDomain.min) / 50);
+        const jSkip = Math.round((yDomain.max - yDomain.min) / 50);
+        const iString = `${xDomain.min}:${xDomain.max}:${iSkip}`;
+        const jString = `${yDomain.min}:${yDomain.max}:${jSkip}`;
+        return `${iString},${jString}`;
     }
 
     onTimeChanged(currentTime: DateTime) {
         // The coordinate definitions are given at https://github.com/NREL/hsds-examples
-        const xDomain = { min: 0, max: 1000 }
-        const yDomain = { min: 0, max: 500 }
+        const xDomain = { min: 0, max: 1601 }
+        const yDomain = { min: 0, max: 2975 }
 
-        const ss = `[${this.selectStringTime()},${this.selectStringGeographic()}]`;
+        const ss = `[${this.selectStringTime()},${this.selectStringGeographic(xDomain, yDomain)}]`;
         const selectString = `value?select=${ss}`;
         const hostString = `&host=${this.host}`;
         const apiString = `&api_key=${this.apiKey}`;
@@ -137,7 +138,7 @@ export class H5DataSource implements DataSource {
             for (let yi = 0; yi < yLen; yi += 1) {
                 const pt1 = H5DataSource.fromH5ToLatLon(xMin, yDomain.min + yi * yStep);
                 const pt2 = H5DataSource.fromH5ToLatLon(xMax, yDomain.min + (yi + 1) * yStep);
-                pt2.x += 0.2 * (pt2.x - pt1.x)
+                pt2.x += 0.4 * (pt2.x - pt1.x)
                 const region = new Region(pt1, pt2);
                 features.push(
                     {
