@@ -16,6 +16,7 @@
 
 import { DateTime } from "luxon";
 import { DataSource } from './DataSource';
+import { GeoJsonShape } from "./GeoJson";
 
 type UrlInfo = {
     url: string,
@@ -54,7 +55,6 @@ export class VigsiDataSource implements DataSource {
                     });
 
                     if (!this.data.get(time)) {
-                        console.log(time);
                         const futureData: Promise<any> = fetch(urlAddress)
                             .then(resp => {
                                 if (!resp.ok) {
@@ -76,13 +76,13 @@ export class VigsiDataSource implements DataSource {
             });
     }
 
-    get(timestamp: DateTime): Promise<any> {
+    get(timestamp: DateTime): GeoJsonShape | undefined {
         const str = timestamp.toUTC().toISO();
         const retriever = this.data.get(str);
 
         if (!retriever) {
-            return Promise.reject("no such data");
+            return undefined
         }
-        return retriever;
+        return undefined;
     }
 }

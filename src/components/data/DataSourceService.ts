@@ -19,6 +19,7 @@ import { Observable } from "rxjs";
 import { DataSource } from './DataSource';
 import { H5DataSource } from "./H5DataSource";
 import { VigsiDataSource } from "./VigsiDataSource";
+import { GeoJsonShape } from "./GeoJson";
 
 export type DataSeriesId = string;
 
@@ -92,9 +93,9 @@ export class DataSourceService {
         );
     }
 
-    get(id: DataSeriesId, timestamp: DateTime): Promise<any> {
+    get(id: DataSeriesId, timestamp: DateTime): Promise<GeoJsonShape> {
         const cache = this.dataSources.get(id);
-        return cache && cache.get(timestamp) || Promise.reject("No such data series id");
+        return cache && cache.get(timestamp) || Promise.reject("No data source with ID: " + id);
     }
 
     private updateCache(currentTime: DateTime) {

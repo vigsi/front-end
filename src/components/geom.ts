@@ -15,6 +15,7 @@
 */
 
 import { toStringHDMS } from 'ol/coordinate'
+
 export class Coordinate {
     constructor(public x: number, public y: number) {}
 
@@ -56,5 +57,13 @@ export class Region {
 
     xDomain(): [number, number] {
         return [this.pt1.x, this.pt2.x];
+    }
+
+    toClosedPolygon(): number[][] {
+        const minX = Math.min(this.pt1.x, this.pt2.x)
+        const minY = Math.min(this.pt1.y, this.pt2.y)
+        const maxX = Math.max(this.pt1.x, this.pt2.x)
+        const maxY = Math.max(this.pt1.y, this.pt2.y)
+        return [[minX, maxY], [maxX, maxY], [maxX, minY], [minX, minY], [minX, maxY]]
     }
 }

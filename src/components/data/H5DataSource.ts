@@ -16,7 +16,10 @@
 
 import { DateTime } from "luxon";
 import { DataSource } from './DataSource';
+// @ts-ignore
 import proj4 from 'proj4';
+import { GeoJsonShape } from "./GeoJson";
+import { Coordinate, Region } from "../geom";
 
 type Link = {
     class: string;
@@ -27,18 +30,23 @@ type Link = {
     title: string;
 }
 
+type Domain = {
+    min: number;
+    max: number;
+}
+
 export class H5DataSource implements DataSource {
     url: string = "https://developer.nrel.gov/api/hsds/"
     apiKey: string = "3K3JQbjZmWctY0xmIfSYvYgtIcM3CN0cb1Y2w9bf"
     host: string = "/nrel/wtk-us.h5"
     ghiLink: Link | undefined
     coordLink: Link | undefined
+    dataCache: Promise<GeoJsonShape> = Promise.reject("Data not yet loaded")
 
-    nrelProj = new proj4.Proj('+proj=lcc +lat_1=30 +lat_2=60 +lat_0=38.47240422490422 +lon_0=-96.0 +x_0=0 +y_0=0 +ellps=sphere +units=m +no_defs')
+    static nrelProj = new proj4.Proj('+proj=lcc +lat_1=30 +lat_2=60 +lat_0=38.47240422490422 +lon_0=-96.0 +x_0=0 +y_0=0 +ellps=sphere +units=m +no_defs')
+    static epsg3857 = new proj4.Proj('+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs')
 
     constructor() {
-        proj4.defs('NREL:01', '+proj=lcc +lat_1=30 +lat_2=60 +lat_0=38.47240422490422 +lon_0=-96.0 +x_0=0 +y_0=0 +ellps=sphere +units=m +no_defs')
-        
         const rootGroupFetch = fetch(`${this.url}/?host=${this.host}&api_key=${this.apiKey}`)
             .then(resp => resp.json())
             .then(data => {
@@ -69,10 +77,10 @@ export class H5DataSource implements DataSource {
                 console.log(err);
             })
 
-        var coord = this.fromLatLonToH5(0, 0)
-        console.log(coord)
-        var back = this.fromH5ToLatLon(coord[0], coord[1])
-        console.log(back)
+        //var coord = this.fromLatLonToH5(0, 0)
+        //console.log(coord)
+        //var back = this.fromH5ToLatLon(coord[0], coord[1])
+        //console.log(back)
     }
 
     selectStringTime() {
@@ -90,6 +98,9 @@ export class H5DataSource implements DataSource {
 
     onTimeChanged(currentTime: DateTime) {
         // The coordinate definitions are given at https://github.com/NREL/hsds-examples
+        const xDomain = { min: 0, max: 1000 }
+        const yDomain = { min: 0, max: 500 }
+
         const ss = `[${this.selectStringTime()},${this.selectStringGeographic()}]`;
         const selectString = `value?select=${ss}`;
         const hostString = `&host=${this.host}`;
@@ -98,19 +109,61 @@ export class H5DataSource implements DataSource {
         fetch(selectUrl)
             .then(resp => resp.json())
             .then(data => {
+                this.dataCache = 
+                    Promise.resolve(H5DataSource.mapArrayToGeoJson(xDomain, yDomain, data.value[0]));
                 // Returns a 2D array of values
                 // The first index is related to the i coordinate
                 // The second index is related to the j coordinate
-                console.log(data)
             })
             .catch(err => {
                 console.log(err)
             })
     }
 
-    private fromLatLonToH5(lat:number, lon:number): number[] {
+    static mapArrayToGeoJson(xDomain: Domain, yDomain: Domain, data: number[][]) {
+        const h5Coords = H5DataSource.fromLatLonToH5(-120, 33)
+        const lonLat = H5DataSource.fromH5ToLatLon(696, 375)
+
+        const xLen = data.length;
+        const yLen = data[0].length;
+        const xStep = (xDomain.max - xDomain.min) / xLen;
+        const yStep = (yDomain.max - yDomain.min) / yLen;
+           
+        let features = []
+        for (let xi = 0; xi < xLen; xi += 1) {
+            const xMin = xDomain.min + xi * xStep
+            for (let yi = 0; yi < yLen; yi += 1) {
+                const pt1 = H5DataSource.fromH5ToLatLon(xMin, yDomain.min + yi * yStep);
+                features.push(
+                    {
+                        'type': 'Feature',
+                        'geometry': {
+                            "type": "Point",
+                            "coordinates": [ pt1.x, pt1.y ]
+                        },
+                        "properties": {
+                            "ghi": data[xi][yi]
+                        }
+                    }
+                );
+            }
+        }
+
+        return {
+            'type': 'FeatureCollection',
+            'crs': {
+                'type': 'name',
+                'properties': {
+                  'name': 'EPSG:4326'
+                }
+              },
+            'features': features,
+        }
+    }
+
+    static fromLatLonToH5(lon:number, lat:number): number[] {
         const origin = [-2975465.0557618504, -1601248.319293951];
-        const coords = proj4(this.nrelProj, [lat, lon]);
+        const coords = proj4(H5DataSource.nrelProj, [lon, lat]);
 
         const i = Math.round((coords[1] - origin[1]) / 2000)
         const j = Math.round((coords[0] - origin[0]) / 2000)
@@ -118,26 +171,15 @@ export class H5DataSource implements DataSource {
         return [i, j]
     }
 
-    private fromH5ToLatLon(i: number, j: number): number[] {
+    static fromH5ToLatLon(i: number, j: number): Coordinate {
         let lat = j * 2000 - 2975465.0557618504
         let lon = i * 2000 - 1601248.319293951
 
-        const coords = proj4(this.nrelProj, proj4.WGS84, [lat, lon])
-        return coords
+        const coords = proj4(H5DataSource.nrelProj, proj4.WGS84, [lat, lon])
+        return new Coordinate(coords[0], coords[1])
     }
 
-    /*ijForCoord(lat, long) {
-        // [0][0] in lcc projected coordinates
-        let origin = [-2975465.0557618504, -1601248.319293951];
-        let coords = proj4('NREL:01', [lat, long]);
-        let ij = [-1, -1];
-        for (let i = 0; i <= 1; i++) {
-          ij[1-i] = Math.round((coords[i] - origin[i])/2000);
-        }
-        return ij;
-      }*/
-
-    get(timestamp: DateTime): Promise<any> {
-        return Promise.reject("no such data");
+    get(timestamp: DateTime): Promise<GeoJsonShape> {
+        return this.dataCache
     }
 }

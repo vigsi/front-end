@@ -30,6 +30,7 @@ import { DataSourceService, DataSeriesDefinition, DataSeriesId } from './data/Da
 import { Coordinate, Region } from './geom'
 
 import './app.less'
+import { GeoJsonShape } from './data/GeoJson'
 
 /**
  * Defines the application state. This state is owned by the main application
@@ -77,6 +78,8 @@ type AppState = {
      * The height of our window.
      */
     height: number;
+
+    data: GeoJsonShape | undefined;
 }
 
 /**
@@ -143,13 +146,14 @@ export class App extends React.Component<{}, AppState> {
             selectedSeriesId: undefined,
             width: 1000,
             height: 1000,
+            data: undefined
         };
 
         // As the data source for the series to that we can populate
         // the controls on our UI
         this.dataSourceService.getDataSeries()
             .then(seriesDefs => {
-                let newState: AppState = { seriesDefs };
+                let newState:any = { seriesDefs };
                 
                 // Since this is the first time we have a data series
                 // then select the first item as our initial selection
@@ -179,6 +183,19 @@ export class App extends React.Component<{}, AppState> {
         this.setState({
             time: value
         });
+
+        // Fetch the data for the time time frame
+        if (this.state.selectedSeriesId) {
+            this.dataSourceService.get(this.state.selectedSeriesId, this.state.time)
+                .then(data => {
+                    this.setState({
+                        data
+                    })
+                })
+                .catch(err => {
+                    console.log(err)
+                })
+        }
     }
 
     /**
@@ -226,8 +243,6 @@ export class App extends React.Component<{}, AppState> {
         const mapWidth = Math.max(100, this.state.width - 140);
         const mapHeight = Math.max(100, this.state.height - 220);
 
-        const data = this.state.selectedSeriesId && this.dataSourceService.get(this.state.selectedSeriesId, this.state.time) || Promise.reject("No selected series")
-
         return (
             <div>
                 <Header
@@ -255,7 +270,7 @@ export class App extends React.Component<{}, AppState> {
                                 }}
                                 width={mapWidth}
                                 height={mapHeight}
-                                data={data}
+                                data={this.state.data}
                             />
                         </div>
                         <div className="main-content__right">

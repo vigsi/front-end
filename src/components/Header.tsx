@@ -41,7 +41,7 @@ export const Header: React.FunctionComponent<HeaderProps> = ({ seriesDefs, selec
     return (<MenuItem value={def.id} key={def.id}>{def.name}</MenuItem>);
   });
 
-  const onSelectChanged = (event: React.ChangeEvent) => {
+  const onSelectChanged = (event: any) => {
     onSeriesSelected(event.target.value);
   }
 

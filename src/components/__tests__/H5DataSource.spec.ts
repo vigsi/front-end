@@ -14,11 +14,15 @@
  * limitations under the License.
 */
 
-import { DateTime } from "luxon";
-import { GeoJsonShape } from "./GeoJson";
+import { H5DataSource } from "../data/H5DataSource"
 
-export interface DataSource {
-    onTimeChanged(currentTime: DateTime): void;
+test('H5DataSource.fromLatLonToH5', () => {
+    const h5Coords = H5DataSource.fromLatLonToH5(-120, 33)
+    expect(h5Coords).toEqual([696, 375])
+})
 
-    get(timestamp: DateTime): Promise<GeoJsonShape>;
-}
+test('H5DataSource.fromH5ToLatLon', () => {
+  const lonLat = H5DataSource.fromH5ToLatLon(696, 375)
+  expect(lonLat).toEqual([-120, 33])
+})
+  

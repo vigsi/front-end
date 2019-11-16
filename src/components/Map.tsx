@@ -15,11 +15,13 @@
 */
 
 import * as React from 'react'
+// @ts-ignore
 import { Map, View } from 'ol'
 import Feature from 'ol/Feature'
 import Point from 'ol/geom/Point'
 import TileLayer from 'ol/layer/Tile'
 import { Heatmap as HeatmapLayer } from 'ol/layer'
+import GeoJSON from 'ol/format/GeoJSON';
 import VectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
 import Stamen from 'ol/source/Stamen'
@@ -44,8 +46,18 @@ type MapState = {
 }
 
 export default class App extends React.Component<MapProps, MapState> {
+    dataLayer: HeatmapLayer
+
     constructor(props: MapProps) {
         super(props)
+
+        // @ts-ignore
+        this.dataLayer = new HeatmapLayer({
+            source: new VectorSource({ features: [] }),
+            weight: (feature: any) => {
+                return feature.values_.ghi / 300;
+            }
+        });
     }
 
     render() {
@@ -62,8 +74,6 @@ export default class App extends React.Component<MapProps, MapState> {
             }
             
         }
-
-        console.log(this.props.data)
         
         return (
             <div ref="mapContainer" id="mapContainer" style={{ width: mapWidth, height: mapHeight}} />
@@ -120,12 +130,13 @@ export default class App extends React.Component<MapProps, MapState> {
 
         const map = new Map({
             view,
+            // @ts-ignore
             target: this.refs.mapContainer,
-            layers: [backgroundLayer, markerLayer]
+            layers: [backgroundLayer, this.dataLayer, markerLayer]
         });
 
         const modify = new Modify({source: markerSource});
-        modify.on('modifyend', (evt: ModifyEvent) => {
+        modify.on('modifyend', (evt: any) => {
             // We only care if the modify event is for our marker
             if (evt.features.getLength() !== 1) {
                 return;
@@ -143,6 +154,35 @@ export default class App extends React.Component<MapProps, MapState> {
         this.setState({ 
           map
         });
+    }
 
+    componentDidUpdate(prevProps: MapProps) {
+        if (prevProps.data !== this.props.data && this.props.data) {
+            const vectorSource = new VectorSource({
+                features: (new GeoJSON()).readFeatures(this.props.data, {
+                    dataProjection: 'EPSG:4326',
+                  featureProjection: 'EPSG:3857'
+                })
+            })
+
+            this.dataLayer.setSource(vectorSource)
+
+            // @ts-ignore
+            /*const newLayer = new HeatmapLayer({
+                source: vectorSource,
+                blur: 5,
+                radius: 10,
+                weight: (feature: any) => {
+                    return feature.values_.ghi / 300;
+                }
+            });
+            
+            if (this.dataLayer) {
+                this.state.map.removeLayer(this.dataLayer)
+            }
+            
+            this.state.map.addLayer(newLayer)
+            this.dataLayer = newLayer*/
+        }
     }
 }

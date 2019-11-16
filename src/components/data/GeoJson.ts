@@ -14,11 +14,12 @@
  * limitations under the License.
 */
 
-import { DateTime } from "luxon";
-import { GeoJsonShape } from "./GeoJson";
+export type GeoFeature = {
+    'type': string;
+    'geometry': { 'type': string; coordinates: any };
+};
 
-export interface DataSource {
-    onTimeChanged(currentTime: DateTime): void;
-
-    get(timestamp: DateTime): Promise<GeoJsonShape>;
-}
+export type GeoJsonShape = {
+    'type': string;
+    features: GeoFeature[];
+};
