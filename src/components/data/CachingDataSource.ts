@@ -22,10 +22,12 @@ import { PlaybackInstant } from "../PlaybackService";
 
 type DateTimeString = string;
 
-export class H5CachingDataSource implements DataSource {
-    private backingSource: H5DataSource = new H5DataSource()
-
+export class CachingDataSource implements DataSource {
     private dataCache: Map<DateTimeString, Promise<GeoJsonShape>> = new Map()
+
+    constructor(private backingSource: DataSource) {
+
+    }
 
     onTimeChanged(instant: PlaybackInstant) {
         // We want to load up the next 10 time steps, so check in our data
@@ -35,7 +37,7 @@ export class H5CachingDataSource implements DataSource {
         let stepSize = instant.stepSize;
         for (let i = 0; i < 10; ++i) {
             const futureTime = currentTime.plus(stepSize);
-            const cacheKey = H5CachingDataSource.toCacheKey(futureTime)
+            const cacheKey = CachingDataSource.toCacheKey(futureTime)
             if (!this.dataCache.has(cacheKey)) {
                 this.dataCache.set(cacheKey, this.backingSource.get(futureTime));
             }
@@ -47,7 +49,7 @@ export class H5CachingDataSource implements DataSource {
      * @param timestamp The timestamp of interest to fetch.
      */
     get(timestamp: DateTime): Promise<GeoJsonShape> {
-        const cacheKey = H5CachingDataSource.toCacheKey(timestamp);
+        const cacheKey = CachingDataSource.toCacheKey(timestamp);
         const futureData = this.dataCache.get(cacheKey);
         return futureData || this.backingSource.get(timestamp);
     }

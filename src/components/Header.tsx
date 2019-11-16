@@ -63,8 +63,7 @@ export const Header: React.FunctionComponent<HeaderProps> = ({ seriesDefs, selec
         <Typography className="header-tracker" align="right" style={{ flex: 1 }}>
           <span>{target.toString()}</span>
           <span>in</span>
-          <span>{region.toString()}</span>
-          <span>{time.toLocaleString(DateTime.DATETIME_SHORT)}</span>
+          <span>{time.toLocaleString(DateTime.DATETIME_SHORT)} UTC</span>
         </Typography>
       </Toolbar>
     </Appbar>);

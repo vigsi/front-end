@@ -18,6 +18,7 @@ import { DateTime, Interval } from "luxon";
 import { Observable } from "rxjs";
 import { DataSource } from './DataSource';
 import { H5DataSource } from "./H5DataSource";
+import { CachingDataSource } from "./CachingDataSource";
 import { VigsiDataSource } from "./VigsiDataSource";
 import { GeoJsonShape } from "./GeoJson";
 import { PlaybackInstant } from "../PlaybackService";
@@ -67,7 +68,7 @@ export class DataSourceService {
             sources.forEach(source => {
                 let backend;
                 if (source.type == "h5") {
-                    backend = new H5DataSource()
+                    backend = new CachingDataSource(new H5DataSource())
                 } else {
                     backend = new VigsiDataSource(this.host, source.id)
                 }
@@ -83,17 +84,20 @@ export class DataSourceService {
      * Gets the total data time range that is available.
      */
     getDataInterval() : Promise<Interval> {
-        const now = DateTime.utc().set({ minute: 0, second: 0, millisecond: 0 });
+        const end = DateTime.fromObject({ 
+           year : 2013,
+           month: 12,
+           day: 31
+        });
         const start = DateTime.fromObject({
             year: 2007,
             month: 1,
             day: 1
         })
-        DateTime.utc().set({minute: 0, second: 0, millisecond: 0});
         return Promise.resolve(
             Interval.fromDateTimes(
                 start,
-                now
+                end
             )
         );
     }

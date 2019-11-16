@@ -21,6 +21,7 @@ import proj4 from "proj4";
 import { GeoJsonShape } from "./GeoJson";
 import { Coordinate, Region } from "../geom";
 import { PlaybackInstant } from "../PlaybackService";
+import { string } from "prop-types";
 
 type Link = {
     class: string;
@@ -44,10 +45,19 @@ export class H5DataSource implements DataSource {
     apiKey: string = "3K3JQbjZmWctY0xmIfSYvYgtIcM3CN0cb1Y2w9bf"
     host: string = "/nrel/wtk-us.h5"
     ghiLink: Link | undefined
+    coordsLink: Link | undefined
+    // Maintain a map of coordinates that we have queried before so we don't
+    // have to query for them again
+    coordsCache: Map<string, number[][][]> = new Map()
+
 
     static dataStart: DateTime = DateTime.fromISO("2007-01-01T00:00")
     static nrelProj = new proj4.Proj('+proj=lcc +lat_1=30 +lat_2=60 +lat_0=38.47240422490422 +lon_0=-96.0 +x_0=0 +y_0=0 +ellps=sphere +units=m +no_defs')
     static epsg3857 = new proj4.Proj('+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs')
+    
+    // The coordinate definitions are given at https://github.com/NREL/hsds-examples
+    static xDomain = { min: 0, max: 1601 }
+    static yDomain = { min: 0, max: 2975 }
 
     constructor() {
         // This section does some initial queries against the data soruce to discover what is available
@@ -73,12 +83,31 @@ export class H5DataSource implements DataSource {
                 console.log(err);
             })
 
-        rootLinksFetch.then(resp => resp && resp.json())
+        const coordsFetch = rootLinksFetch.then(resp => resp && resp.json())
             .then(linksData => {
                 this.ghiLink = (linksData.links.find((link: any) => link.title == "GHI") || {});
+                this.coordsLink = (linksData.links.find((link: any) => link.title == "coordinates") || {});
+                return this.coordsLink
+            })
+            .then(coordsLink => {
+                // Once we have the initial request, we do a request for the coordinates so we get it once
+                // and don't have to get it again
+                const ss = H5DataSource.selectStringGeographic(H5DataSource.xDomain, H5DataSource.yDomain);
+                const selectString = `value?select=[${ss}]`;
+                const hostString = `&host=${this.host}`;
+                const apiString = `&api_key=${this.apiKey}`;
+                const selectUrl = `${this.url}/datasets/${this.coordsLink && this.coordsLink.id}/${selectString}${hostString}${apiString}`;
+                return Promise.all([fetch(selectUrl).then(resp => resp && resp.json()), Promise.resolve(ss)]);
             })
             .catch(err => {
                 console.log(err);
+            })
+
+        coordsFetch.then((coordsAndKey: any) => {
+                const coords = coordsAndKey[0]
+                const key = coordsAndKey[1]
+
+                this.coordsCache.set(key, coords.value)
             })
     }
 
@@ -90,16 +119,15 @@ export class H5DataSource implements DataSource {
         if (!this.ghiLink) {
             return Promise.reject("Configuration not yet loaded");
         }
-        // The coordinate definitions are given at https://github.com/NREL/hsds-examples
-        const xDomain = { min: 0, max: 1601 }
-        const yDomain = { min: 0, max: 2975 }
 
         const timeSelect = H5DataSource.selectStringTime(timestamp)
         if (timeSelect === undefined) {
             return Promise.reject("Time too early - such data");
         }
 
-        const ss = `[${timeSelect},${H5DataSource.selectStringGeographic(xDomain, yDomain)}]`;
+        const geographicSelect = H5DataSource.selectStringGeographic(H5DataSource.xDomain, H5DataSource.yDomain);
+
+        const ss = `[${timeSelect},${geographicSelect}]`;
         const selectString = `value?select=${ss}`;
         const hostString = `&host=${this.host}`;
         const apiString = `&api_key=${this.apiKey}`;
@@ -110,20 +138,18 @@ export class H5DataSource implements DataSource {
                 // Returns a 2D array of values
                 // The first index is related to the i coordinate
                 // The second index is related to the j coordinate
-                const geojson = Promise.resolve(H5DataSource.mapArrayToGeoJson(xDomain, yDomain, data.value[0]));
-                return geojson;
+                return Promise.resolve(H5DataSource.mapArrayToGeoJson(this.coordsCache.get(geographicSelect), data.value[0]));
             })
     }
 
     static selectStringTime(timestamp: DateTime): string | undefined {
+        // This data set is indexed in hours from the start time of 2007-01-01T00:00
         const diffInHours = Math.round(timestamp.diff(H5DataSource.dataStart).as("hours"));
 
         if (diffInHours < 0) {
             return;
         }
-        console.log(diffInHours)
-        // return `${this.t}:${this.t+1}`;
-        // TODO this should be the difference in hours starting from '2007-01-01T00:00'
+
         return `${diffInHours}:${diffInHours+1}`;
     }
 
@@ -147,32 +173,27 @@ export class H5DataSource implements DataSource {
      * @param yDomain The y domain that was requested.
      * @param data The data for a particular timestamp.
      */
-    static mapArrayToGeoJson(xDomain: Domain, yDomain: Domain, data: number[][]): GeoJsonShape {
+    static mapArrayToGeoJson(coords: number[][][], data: number[][]): GeoJsonShape {
         // Just keeping for good measure so I don't forget
         // const h5Coords = H5DataSource.fromLatLonToH5(-120, 33)
         // const lonLat = H5DataSource.fromH5ToLatLon(696, 375)
 
-        const xLen = data.length;
-        const yLen = data[0].length;
-        const xStep = (xDomain.max - xDomain.min) / xLen;
-        const yStep = (yDomain.max - yDomain.min) / yLen;
+        const xLen = data.length - 1;
+        const yLen = data[0].length - 1;
            
         let features = []
         for (let xi = 0; xi < xLen; xi += 1) {
-            const xMin = xDomain.min + xi * xStep
-            const xMax = xDomain.min + (xi + 1) * xStep
             for (let yi = 0; yi < yLen; yi += 1) {
-                const pt1 = H5DataSource.fromH5ToLatLon(xMin, yDomain.min + yi * yStep);
-                const pt2 = H5DataSource.fromH5ToLatLon(xMax, yDomain.min + (yi + 1) * yStep);
-                pt2.x += 0.4 * (pt2.x - pt1.x)
-                pt2.y -= 0.4 * (pt1.y - pt2.y)
-                const region = new Region(pt1, pt2);
+                const pt1 = Coordinate.fromLatLon(coords[xi][yi]).toArray()
+                const pt2 = Coordinate.fromLatLon(coords[xi+1][yi]).toArray()
+                const pt3 = Coordinate.fromLatLon(coords[xi+1][yi+1]).toArray()
+                const pt4 = Coordinate.fromLatLon(coords[xi][yi+1]).toArray()
                 features.push(
                     {
                         'type': 'Feature',
                         'geometry': {
                             'type': 'Polygon',
-                            'coordinates': [region.toClosedPolygon()]
+                            'coordinates': [[pt1, pt2, pt3, pt4, pt1]]
                         },
                         "properties": {
                             "ghi": data[xi][yi]

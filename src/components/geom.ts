@@ -19,6 +19,10 @@ import { toStringHDMS } from 'ol/coordinate'
 export class Coordinate {
     constructor(public x: number, public y: number) {}
 
+    static fromLatLon(latLon: number[]) {
+        return new Coordinate(latLon[1], latLon[0])
+    }
+
     toString(): string {
         return `(${this.x.toFixed()}, ${this.y.toFixed()})`
     }

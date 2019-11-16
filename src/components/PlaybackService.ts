@@ -60,6 +60,10 @@ export class PlaybackService {
     }
 
     start() {
+        if (this.interval) {
+            return;
+        }
+        
         this.interval = window.setInterval(() => {
             const playbackInterval = {
                 current: this.onGetValue().plus(this.stepSize),
