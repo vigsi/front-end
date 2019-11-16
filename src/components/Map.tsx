@@ -54,8 +54,6 @@ const createStyle = (feature: any) => {
     })
 }
 
-const style = 
-
 export default class App extends React.Component<MapProps, MapState> {
     dataLayer: VectorLayer
 
