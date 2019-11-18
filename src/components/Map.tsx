@@ -15,17 +15,14 @@
 */
 
 import * as React from 'react'
-import Paper from '@material-ui/core/Paper'
 import Typography from '@material-ui/core/Typography'
 // @ts-ignore
 import { Map, View } from 'ol'
 import Feature from 'ol/Feature'
 import Point from 'ol/geom/Point'
-import TileLayer from 'ol/layer/Tile'
 import GeoJSON from 'ol/format/GeoJSON';
 import VectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
-import Stamen from 'ol/source/Stamen'
 import {Modify} from 'ol/interaction'
 import {Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style'
 import 'ol/ol.css'

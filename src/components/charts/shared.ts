@@ -16,6 +16,7 @@
 
 import { Coordinate, Region } from '../geom'
 import { DataSeriesDefinition } from '../data/DataSourceService'
+import { GeoJsonShape } from '../data/GeoJson'
 
 export type ChartProps = {
     target: Coordinate;
@@ -23,5 +24,6 @@ export type ChartProps = {
     valueDomain: [number, number];
     mapWidth: number;
     mapHeight: number;
-    seriesDefs: DataSeriesDefinition[]
+    seriesDefs: DataSeriesDefinition[];
+    data: GeoJsonShape | undefined;
 }

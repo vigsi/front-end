@@ -15,6 +15,7 @@
 */
 
 import { toStringHDMS } from 'ol/coordinate'
+import { toLonLat } from 'ol/proj'
 
 export class Coordinate {
     constructor(public x: number, public y: number) {}
@@ -27,8 +28,13 @@ export class Coordinate {
         return `(${this.x.toFixed()}, ${this.y.toFixed()})`
     }
 
+    toLonLat(): Coordinate {
+        const coord = toLonLat([this.x, this.y]);
+        return new Coordinate(coord[0], coord[1]);
+    }
+
     toHDMSString(): string {
-        return toStringHDMS(this.toArray())
+        return toStringHDMS(this.toArray());
     }
     toArray(): number[] {
         return [this.x, this.y];
@@ -39,11 +45,15 @@ export class Region {
     constructor(public pt1: Coordinate, public pt2: Coordinate) {}
 
     toString(): string {
-        return `[${this.pt1.toString()}, ${this.pt2.toString()}]`
+        return `[${this.pt1.toString()}, ${this.pt2.toString()}]`;
     }
 
     toHDMSString(): string {
-        return `[${this.pt1.toHDMSString()}; ${this.pt2.toHDMSString()}]`
+        return `[${this.pt1.toHDMSString()}; ${this.pt2.toHDMSString()}]`;
+    }
+
+    toLonLat(): Region {
+        return new Region(this.pt1.toLonLat(), this.pt2.toLonLat());
     }
 
     yLength(): number {

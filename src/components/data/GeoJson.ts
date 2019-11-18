@@ -17,7 +17,7 @@
 export type GeoFeature = {
     "type": string;
     "geometry": { "type": string; coordinates: any };
-    "properties": { "ghi": number };
+    "properties": { "ghi": number | undefined, "energy": number | undefined };
 };
 
 export type GeoJsonShape = {

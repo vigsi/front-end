@@ -247,7 +247,7 @@ export class App extends React.Component<{}, AppState> {
     }
 
     render() {
-        const valueDomain: [number, number] = [0, 20000];
+        const valueDomain: [number, number] = [0, 1200];
 
         const mapWidth = Math.max(100, this.state.width - 100);
         const mapHeight = Math.max(100, this.state.height - 200);
@@ -283,12 +283,12 @@ export class App extends React.Component<{}, AppState> {
                             />
                         </div>
                         <div className="main-content__right">
-                            <Vertical region={this.state.region} target={this.state.target} valueDomain={valueDomain} seriesDefs={this.state.seriesDefs} mapWidth={mapWidth} mapHeight={mapHeight}/>
+                            <Vertical data={this.state.data} region={this.state.region} target={this.state.target} valueDomain={valueDomain} seriesDefs={this.state.seriesDefs} mapWidth={mapWidth} mapHeight={mapHeight}/>
                         </div>
                     </div>
                     <div className="main-content__row">
                         <div className="main-content__left">
-                            <Horizontal region={this.state.region} target={this.state.target} valueDomain={valueDomain} seriesDefs={this.state.seriesDefs} mapWidth={mapWidth} mapHeight={mapHeight}/>
+                            <Horizontal data={this.state.data} region={this.state.region} target={this.state.target} valueDomain={valueDomain} seriesDefs={this.state.seriesDefs} mapWidth={mapWidth} mapHeight={mapHeight}/>
                         </div>
                         <div className="main-content__right">
                             <Legend seriesDefs={this.state.seriesDefs}/>

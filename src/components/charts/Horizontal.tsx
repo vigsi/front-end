@@ -15,48 +15,81 @@
 */
 
 import * as React from 'react'
+import { toLonLat } from 'ol/proj'
 import { ChartProps } from './shared'
 import { VictoryChart, VictoryAxis, VictoryLine, VictoryTheme, VictoryContainer, VictoryLabel } from 'victory'
+import { GeoJsonShape } from '../data/GeoJson'
+import { Coordinate } from '../geom'
 import './chart.less'
+
+type DataSet = {
+  id: string,
+  data: {},
+}
+
+const mapDataForTarget = (id: string, data: GeoJsonShape, target: Coordinate): DataSet => {
+  const pos = toLonLat([target.x, target.y]);
+  const posY = pos[1]
+
+  const items = []
+  for (let i = 0; i < data.features.length; ++i) {
+    const coordList = data.features[i].geometry.coordinates[0];
+    const minY = Math.min(coordList[0][1], coordList[1][1]);
+    const maxY = Math.max(coordList[0][1], coordList[1][1]);
+    if (posY >= minY && posY < maxY) {
+      items.push({
+        x: coordList[0][0],
+        ghi: data.features[i].properties.ghi,
+        energy: data.features[i].properties.energy,
+      })
+    }
+  }
+
+  items.sort((el1, el2) => {
+    return el1.x - el2.x
+  });
+
+  return {
+    id,
+    data: items
+  }
+}
 
 export default class Horizontal extends React.Component<ChartProps> {
     state = {
         count: 0
     };
 
+    filteredData: DataSet[] = []
 
     render () {
-      const xSize = this.props.region.xLength();
-
-      const stepSize = xSize / 3;
-      const start = this.props.region.pt1.x;
-
-      const lines = this.props.seriesDefs.map(def => {
-        const data = [
-          {x: start, value: Math.random() * 20000},
-          {x: start + stepSize, value: Math.random() * 20000},
-          {x: start + 2 * stepSize, value: Math.random() * 20000},
-          {x: start + 3 * stepSize, value: Math.random() * 20000}
-        ];
-
+      const xDomain = this.props.region.toLonLat().xDomain()
+      const lines = this.filteredData.map(def => {
         return (<VictoryLine
-            key={def.id}
-            data={data}
-            // data accessor for x values
-            x="x"
-            // data accessor for y values
-            y="value"
-            style={{data: {stroke: def.color}}}
-          />);
+          key={def.id}
+          data={def.data}
+          // data accessor for x values
+          x="x"
+          // data accessor for y values
+          y="ghi"
+          style={{data: {stroke: "#aa2e25"}}}
+        />);
       });
 
       return (
         <div id="horizontal-chart">
           <VictoryChart theme={VictoryTheme.material} height={80} width={this.props.mapWidth} padding={{top: 12, left: 0, bottom: 0, right: 0}} containerComponent={<VictoryContainer responsive={false}/>}>
-            <VictoryAxis domain={this.props.region.xDomain()} tickValues={[]} label="radiation"/>
+            <VictoryAxis domain={xDomain} tickValues={[]} label="radiation"/>
             <VictoryAxis dependentAxis={true} domain={this.props.valueDomain} tickLabelComponent={<VictoryLabel dx={-20} textAnchor="end" />}/>
             {lines}
           </VictoryChart>
         </div>);
     }
+
+    componentDidUpdate(prevProps: ChartProps) {
+      if (this.props.data && (prevProps.data !== this.props.data || prevProps.target !== this.props.target)) {
+        this.filteredData = []
+        this.filteredData.push(mapDataForTarget("NREL", this.props.data, this.props.target))
+      }
+  }
 }
