@@ -30,7 +30,6 @@ export class Coordinate {
     toHDMSString(): string {
         return toStringHDMS(this.toArray())
     }
-
     toArray(): number[] {
         return [this.x, this.y];
     }

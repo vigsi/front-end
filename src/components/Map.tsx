@@ -15,6 +15,8 @@
 */
 
 import * as React from 'react'
+import Paper from '@material-ui/core/Paper'
+import Typography from '@material-ui/core/Typography'
 // @ts-ignore
 import { Map, View } from 'ol'
 import Feature from 'ol/Feature'
@@ -30,6 +32,7 @@ import 'ol/ol.css'
 import {Coordinate, Region} from './geom'
 import * as d3ScaleChromatic from 'd3-scale-chromatic';
 import './map.less'
+import MapNorthAmerica from './map-na.json';
 
 type MapProps = {
     target: Coordinate;
@@ -45,15 +48,30 @@ type MapState = {
     map: Map;
 }
 
+const colorFromValue = (value: number) => {
+    return d3ScaleChromatic.interpolateGreys(1 - value);
+}
+
 const createStyle = (feature: any) => {
     // The largest value for GHI is about 1100. So we define that as our maximum
-    const color = d3ScaleChromatic.interpolateGreys(1 - (feature.values_.ghi / 1100));
     return new Style({
         fill: new Fill({
-          color
+          color: colorFromValue(feature.values_.ghi / 1100)
+        }),
+        stroke: new Stroke({
+            width: 0.1,
+            color: "white"
         })
     })
 }
+
+const borderStyle = new Style({
+    stroke: new Stroke({
+        width: 1,
+        color: "#3f51b5"
+    })
+})
+
 
 export default class App extends React.Component<MapProps, MapState> {
     dataLayer: VectorLayer
@@ -82,19 +100,36 @@ export default class App extends React.Component<MapProps, MapState> {
             }
             
         }
+
+        const scale = [1, 0.75, 0.5, 0.25, 0].map(v => {
+            return (
+                <div key={"cc" + v} className={"map-legend__item"}>
+                    <div key={"c" + v} style={{ backgroundColor: colorFromValue(v) }}></div>
+                    <Typography key={"t" + v} variant="body2">{v}</Typography>
+                </div>);
+        })
         
         return (
-            <div ref="mapContainer" id="mapContainer" style={{ width: mapWidth, height: mapHeight}} />
+            <div>
+                <div id="map-legend">
+                    {scale}
+                </div>
+                <div ref="mapContainer" id="map-container" style={{ width: mapWidth, height: mapHeight}} />
+            </div>
         );
     }
 
     componentDidMount() {
-        const backgroundLayer = new TileLayer({
-            source: new Stamen({
-                layer: 'toner'
-            }),
-            opacity: 0.2
-          });
+        const backgroundSource = new VectorSource({
+            features: (new GeoJSON()).readFeatures(MapNorthAmerica, {
+                dataProjection: 'EPSG:4326',
+              featureProjection: 'EPSG:3857'
+            })
+        })
+        const backgroundLayer = new VectorLayer({
+            source: backgroundSource,
+            style: () => borderStyle,
+        });
 
         const markerPoint = new Point(this.props.target.toArray());
         const markerSource = new VectorSource({
@@ -117,7 +152,7 @@ export default class App extends React.Component<MapProps, MapState> {
                     width: 2
                   }),
                   image: new CircleStyle({
-                    radius: 7,
+                    radius: 5,
                     fill: new Fill({
                       color: '#ffcc33'
                     })
@@ -128,7 +163,7 @@ export default class App extends React.Component<MapProps, MapState> {
         const view = new View({
             // Set the initial location to Boulder, CO
             center: [-11718716.28195593, 4869217.172379018],
-            zoom: 3,
+            zoom: 4,
         });
         view.on('change', (evt: Event) => {
             const extent = view.calculateExtent();
@@ -141,7 +176,9 @@ export default class App extends React.Component<MapProps, MapState> {
             view,
             // @ts-ignore
             target: this.refs.mapContainer,
-            layers: [this.dataLayer, backgroundLayer, markerLayer]
+            layers: [this.dataLayer, backgroundLayer, markerLayer],
+            controls: [],
+            interactions: []
         });
 
         const modify = new Modify({source: markerSource});
@@ -175,23 +212,6 @@ export default class App extends React.Component<MapProps, MapState> {
             })
 
             this.dataLayer.setSource(vectorSource)
-
-            // @ts-ignore
-            /*const newLayer = new HeatmapLayer({
-                source: vectorSource,
-                blur: 5,
-                radius: 10,
-                weight: (feature: any) => {
-                    return feature.values_.ghi / 300;
-                }
-            });
-            
-            if (this.dataLayer) {
-                this.state.map.removeLayer(this.dataLayer)
-            }
-            
-            this.state.map.addLayer(newLayer)
-            this.dataLayer = newLayer*/
         }
     }
 }

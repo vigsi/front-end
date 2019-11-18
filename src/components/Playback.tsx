@@ -18,7 +18,6 @@ import * as React from 'react'
 import { DateTime, Interval } from 'luxon'
 import Slider from '@material-ui/core/Slider'
 import IconButton from '@material-ui/core/IconButton'
-import Paper from '@material-ui/core/Paper'
 import TextField from '@material-ui/core/TextField'
 import Tooltip from '@material-ui/core/Tooltip'
 import PlayArrowIcon from '@material-ui/icons/PlayArrow'
@@ -106,63 +105,61 @@ export class Playback extends React.Component<PlaybackProps, PlaybackState> {
         }
     
         return (
-            <Paper>
-                <div id="playback-container">
-                    <Slider
-                        min={0}
-                        max={diffInHours(this.state.selectedInterval.start, this.state.selectedInterval.end)}
-                        value={diffInHours(this.state.selectedInterval.start, value)}
-                        onChange={handleSliderChange}
-                        id="playback-slider"/>
-                    <div id="playback-controls">
-                        <div>
-                            <Tooltip title="Set to earliest time">
-                                <IconButton aria-label="set to earliest time" onClick={() => this.onShowMinimumDate() }>
-                                    <SkipPrevious />
-                                </IconButton>
-                            </Tooltip>
-                            <TextField
-                                id="date"
-                                type="date"
-                                value={this.state.selectedInterval.start.toISODate() || ""}
-                                onChange={ (evt) => this.onMiniumDateChanged(evt) }
-                                InputLabelProps={{
-                                    shrink: true,
-                                }}
-                            />
-                        </div>
-                        <div>
-                            <Tooltip title="Stop automatic time progression">
-                                <IconButton aria-label="stop" onClick={() => onStopPlayback() }>
-                                    <StopIcon />
-                                </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Start automatic time progression">
-                                <IconButton aria-label="start" onClick={() => onStartPlayback() }>
-                                    <PlayArrowIcon />
-                                </IconButton>
-                            </Tooltip>
-                        </div>
-    
-                        <div>
-                            <TextField
-                                id="date"
-                                type="date"
-                                value={this.state.selectedInterval.end.toISODate() || ""}
-                                onChange={() => {}}
-                                InputLabelProps={{
-                                    shrink: true,
-                                }}
-                            />                        
-                            <Tooltip title="Set to latest time">
-                                <IconButton aria-label="set to latest time"  onClick={() => this.onShowMaximumDate() }>
-                                    <SkipNext />
-                                </IconButton>
-                            </Tooltip>
-                        </div>
+            <div id="playback-container">
+                <Slider
+                    min={0}
+                    max={diffInHours(this.state.selectedInterval.start, this.state.selectedInterval.end)}
+                    value={diffInHours(this.state.selectedInterval.start, value)}
+                    onChange={handleSliderChange}
+                    id="playback-slider"/>
+                <div id="playback-controls">
+                    <div>
+                        <Tooltip title="Set to earliest time">
+                            <IconButton aria-label="set to earliest time" onClick={() => this.onShowMinimumDate() }>
+                                <SkipPrevious />
+                            </IconButton>
+                        </Tooltip>
+                        <TextField
+                            id="date"
+                            type="date"
+                            value={this.state.selectedInterval.start.toISODate() || ""}
+                            onChange={ (evt) => this.onMiniumDateChanged(evt) }
+                            InputLabelProps={{
+                                shrink: true,
+                            }}
+                        />
+                    </div>
+                    <div>
+                        <Tooltip title="Stop automatic time progression">
+                            <IconButton aria-label="stop" onClick={() => onStopPlayback() }>
+                                <StopIcon />
+                            </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Start automatic time progression">
+                            <IconButton aria-label="start" onClick={() => onStartPlayback() }>
+                                <PlayArrowIcon />
+                            </IconButton>
+                        </Tooltip>
+                    </div>
+
+                    <div>
+                        <TextField
+                            id="date"
+                            type="date"
+                            value={this.state.selectedInterval.end.toISODate() || ""}
+                            onChange={() => {}}
+                            InputLabelProps={{
+                                shrink: true,
+                            }}
+                        />                        
+                        <Tooltip title="Set to latest time">
+                            <IconButton aria-label="set to latest time"  onClick={() => this.onShowMaximumDate() }>
+                                <SkipNext />
+                            </IconButton>
+                        </Tooltip>
                     </div>
                 </div>
-            </Paper>
+            </div>
         );
     }
 }

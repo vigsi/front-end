@@ -16,10 +16,17 @@
 
 import * as React from 'react'
 import { render } from 'react-dom'
+import { MuiThemeProvider, createMuiTheme } from "@material-ui/core/styles";
 import './index.less'
 
 import { App } from './components/App'
 
+const theme = createMuiTheme({
+palette: {
+    type: 'dark',
+},
+});
+
 // Minimal index file so that nearly everything is contained
 // within components.
-render(<App />, document.getElementById('root'))
+render(<MuiThemeProvider theme={theme}><App /></MuiThemeProvider>, document.getElementById('root'))

@@ -15,6 +15,8 @@
 */
 
 import * as React from 'react'
+// @ts-ignore
+import SunCalc  from 'suncalc'
 import Appbar from '@material-ui/core/Appbar'
 import MenuItem from '@material-ui/core/MenuItem'
 import Select from '@material-ui/core/Select'
@@ -45,6 +47,10 @@ export const Header: React.FunctionComponent<HeaderProps> = ({ seriesDefs, selec
     onSeriesSelected(event.target.value);
   }
 
+  const curDate = new Date(time.toMillis());
+  const eastCoast = SunCalc.getPosition(curDate, 40, 74).altitude;
+  const westCoast = SunCalc.getPosition(curDate, 40, 122).altitude;
+
   return (
     <Appbar position="fixed">
       <Toolbar id="header-toolbar">
@@ -63,6 +69,7 @@ export const Header: React.FunctionComponent<HeaderProps> = ({ seriesDefs, selec
         <Typography className="header-tracker" align="right" style={{ flex: 1 }}>
           <span>{target.toString()}</span>
           <span>in</span>
+          <span>{eastCoast}</span>
           <span>{time.toLocaleString(DateTime.DATETIME_SHORT)} UTC</span>
         </Typography>
       </Toolbar>

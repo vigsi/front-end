@@ -249,8 +249,8 @@ export class App extends React.Component<{}, AppState> {
     render() {
         const valueDomain: [number, number] = [0, 20000];
 
-        const mapWidth = Math.max(100, this.state.width - 140);
-        const mapHeight = Math.max(100, this.state.height - 220);
+        const mapWidth = Math.max(100, this.state.width - 100);
+        const mapHeight = Math.max(100, this.state.height - 200);
 
         return (
             <div>
