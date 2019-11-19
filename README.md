@@ -4,6 +4,8 @@ This repository contains the front-end application code for VIGSI, the tool for 
 graphic solar irradiance data. This application displays solar irradiance information provided
 by the backend.
 
+![](vigsi-front-end.png "VISGI Interactive Application")
+
 ## Running
 
 You need NPM to build the application. Get the code using your preferred Git client. Then, to
