@@ -80,7 +80,7 @@ export default class Horizontal extends React.Component<ChartProps> {
         <div id="horizontal-chart">
           <VictoryChart theme={VictoryTheme.material} height={80} width={this.props.mapWidth} padding={{top: 12, left: 0, bottom: 0, right: 0}} containerComponent={<VictoryContainer responsive={false}/>}>
             <VictoryAxis domain={xDomain} tickValues={[]} label="radiation"/>
-            <VictoryAxis dependentAxis={true} domain={this.props.valueDomain} tickLabelComponent={<VictoryLabel dx={-20} textAnchor="end" />}/>
+            <VictoryAxis dependentAxis={true} domain={this.props.valueDomain} tickLabelComponent={<VictoryLabel dx={-20} textAnchor="end" style={{ fill: "white" }}/>}/>
             {lines}
           </VictoryChart>
         </div>);
@@ -91,5 +91,5 @@ export default class Horizontal extends React.Component<ChartProps> {
         this.filteredData = []
         this.filteredData.push(mapDataForTarget("NREL", this.props.data, this.props.target))
       }
-  }
+    }
 }
