@@ -18,6 +18,8 @@ import * as React from 'react'
 // @ts-ignore
 import SunCalc  from 'suncalc'
 import Appbar from '@material-ui/core/Appbar'
+import WbSunnyIcon from '@material-ui/icons/WbSunny';
+import Brightness2Icon from '@material-ui/icons/Brightness2';
 import MenuItem from '@material-ui/core/MenuItem'
 import Select from '@material-ui/core/Select'
 import Toolbar from '@material-ui/core/Toolbar'
@@ -48,8 +50,8 @@ export const Header: React.FunctionComponent<HeaderProps> = ({ seriesDefs, selec
   }
 
   const curDate = new Date(time.toMillis());
-  const eastCoast = SunCalc.getPosition(curDate, 40, 74).altitude;
-  const westCoast = SunCalc.getPosition(curDate, 40, 122).altitude;
+  const eastCoast = SunCalc.getPosition(curDate, 40, 122).altitude;
+  const westCoast = SunCalc.getPosition(curDate, 40, 74).altitude;
 
   return (
     <Appbar position="fixed">
@@ -68,8 +70,14 @@ export const Header: React.FunctionComponent<HeaderProps> = ({ seriesDefs, selec
         </div>
         <Typography className="header-tracker" align="right" style={{ flex: 1 }}>
           <span>{target.toString()}</span>
-          <span>in</span>
-          <span>{eastCoast}</span>
+          <span>East Coast</span>
+          <span>{
+            eastCoast >= 0.000000 ? <WbSunnyIcon></WbSunnyIcon> : <Brightness2Icon></Brightness2Icon>
+          }</span>
+          <span>West Coast</span>
+          <span>{
+            westCoast >= 0.000000 ? <WbSunnyIcon></WbSunnyIcon> : <Brightness2Icon></Brightness2Icon>
+          }</span>
           <span>{time.toLocaleString(DateTime.DATETIME_SHORT)} UTC</span>
         </Typography>
       </Toolbar>
