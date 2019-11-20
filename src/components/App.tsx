@@ -263,6 +263,7 @@ export class App extends React.Component<{}, AppState> {
                     target={this.state.target}
                     region={this.state.region}
                     time={this.state.time.current}
+                    units="W/m²"
                 />
     
                 <Paper id="main-content">
@@ -280,6 +281,8 @@ export class App extends React.Component<{}, AppState> {
                                 width={mapWidth}
                                 height={mapHeight}
                                 data={this.state.data}
+                                valueDomain={valueDomain}
+                                units="W/m²"
                             />
                         </div>
                         <div className="main-content__right">

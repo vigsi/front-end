@@ -138,7 +138,7 @@ export class H5DataSource implements DataSource {
                 // Returns a 2D array of values
                 // The first index is related to the i coordinate
                 // The second index is related to the j coordinate
-                return Promise.resolve(H5DataSource.mapArrayToGeoJson(this.coordsCache.get(geographicSelect), data.value[0]));
+                return Promise.resolve(H5DataSource.mapArrayToGeoJson(this.coordsCache.get(geographicSelect), data.value[0], timestamp));
             })
     }
 
@@ -173,7 +173,7 @@ export class H5DataSource implements DataSource {
      * @param yDomain The y domain that was requested.
      * @param data The data for a particular timestamp.
      */
-    static mapArrayToGeoJson(coords: number[][][], data: number[][]): GeoJsonShape {
+    static mapArrayToGeoJson(coords: number[][][], data: number[][], timestamp: DateTime): GeoJsonShape {
         // Just keeping for good measure so I don't forget
         // const h5Coords = H5DataSource.fromLatLonToH5(-120, 33)
         // const lonLat = H5DataSource.fromH5ToLatLon(696, 375)
@@ -212,6 +212,9 @@ export class H5DataSource implements DataSource {
                 }
               },
             'features': features,
+            'properties': {
+                'instant': timestamp.toISO()
+            }
         }
     }
 

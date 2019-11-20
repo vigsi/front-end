@@ -25,7 +25,7 @@ export class Coordinate {
     }
 
     toString(): string {
-        return `(${this.x.toFixed()}, ${this.y.toFixed()})`
+        return `${this.y.toFixed(2)} °E ${this.x.toFixed(2)} °N`
     }
 
     toLonLat(): Coordinate {

@@ -20,16 +20,16 @@ import Typography from '@material-ui/core/Typography'
 import { Map, View } from 'ol'
 import Feature from 'ol/Feature'
 import Point from 'ol/geom/Point'
-import GeoJSON from 'ol/format/GeoJSON';
+import GeoJSON from 'ol/format/GeoJSON'
 import VectorLayer from 'ol/layer/Vector'
 import VectorSource from 'ol/source/Vector'
-import {Modify} from 'ol/interaction'
-import {Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style'
+import { Modify } from 'ol/interaction'
+import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style'
 import 'ol/ol.css'
-import {Coordinate, Region} from './geom'
-import * as d3ScaleChromatic from 'd3-scale-chromatic';
+import { Coordinate, Region } from './geom'
+import * as d3ScaleChromatic from 'd3-scale-chromatic'
 import './map.less'
-import MapNorthAmerica from './map-na.json';
+import MapNorthAmerica from './map-na.json'
 
 type MapProps = {
     target: Coordinate;
@@ -39,6 +39,8 @@ type MapProps = {
     width: number;
     height: number;
     data: any;
+    valueDomain: [number, number],
+    units: string,
 }
 
 type MapState = {
@@ -50,10 +52,18 @@ const colorFromValue = (value: number) => {
 }
 
 const createStyle = (feature: any) => {
+    const values = feature.values_;
+    
+    let divisor = 1;
+    if (values.ghi) {
+        divisor = 1100
+    } else if (values.energy) {
+        divisor = 3600000
+    }
     // The largest value for GHI is about 1100. So we define that as our maximum
     return new Style({
         fill: new Fill({
-          color: colorFromValue(feature.values_.ghi / 1100)
+          color: colorFromValue(feature.values_.ghi / divisor)
         }),
         stroke: new Stroke({
             width: 0.1,
@@ -72,6 +82,7 @@ const borderStyle = new Style({
 
 export default class App extends React.Component<MapProps, MapState> {
     dataLayer: VectorLayer
+    timestamp: string
 
     constructor(props: MapProps) {
         super(props)
@@ -98,10 +109,22 @@ export default class App extends React.Component<MapProps, MapState> {
             
         }
 
-        const scale = [1, 0.75, 0.5, 0.25, 0].map(v => {
+        const minValue = this.props.valueDomain[0];
+        const maxValue = this.props.valueDomain[1];
+        const step = (maxValue - minValue) / 5
+        const steps = [
+            minValue,
+            (minValue + step),
+            (minValue + step * 2),
+            (minValue + step * 3),
+            (minValue + step * 4),
+            maxValue
+        ]
+
+        const scale = steps.map(v => {
             return (
                 <div key={"cc" + v} className={"map-legend__item"}>
-                    <div key={"c" + v} style={{ backgroundColor: colorFromValue(v) }}></div>
+                    <div key={"c" + v} style={{ backgroundColor: colorFromValue(v/maxValue) }}></div>
                     <Typography key={"t" + v} variant="body2">{v}</Typography>
                 </div>);
         })
@@ -110,6 +133,7 @@ export default class App extends React.Component<MapProps, MapState> {
             <div>
                 <div id="map-legend">
                     {scale}
+                    {this.timestamp}
                 </div>
                 <div ref="mapContainer" id="map-container" style={{ width: mapWidth, height: mapHeight}} />
             </div>
@@ -206,9 +230,10 @@ export default class App extends React.Component<MapProps, MapState> {
                     dataProjection: 'EPSG:4326',
                   featureProjection: 'EPSG:3857'
                 })
-            })
+            });
 
-            this.dataLayer.setSource(vectorSource)
+            this.dataLayer.setSource(vectorSource);
+            this.timestamp = this.props.data.properties.instant;
         }
     }
 }

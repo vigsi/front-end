@@ -36,10 +36,10 @@ type HeaderProps = {
   target: Coordinate;
   region: Region;
   time: DateTime;
-
+  units: string;
 }
 
-export const Header: React.FunctionComponent<HeaderProps> = ({ seriesDefs, selectedSeriesId, onSeriesSelected, target, region, time }) =>
+export const Header: React.FunctionComponent<HeaderProps> = ({ seriesDefs, selectedSeriesId, onSeriesSelected, target, region, time, units }) =>
 {
   const menuItems = seriesDefs.map(def => {
     return (<MenuItem value={def.id} key={def.id}>{def.name}</MenuItem>);
@@ -49,9 +49,16 @@ export const Header: React.FunctionComponent<HeaderProps> = ({ seriesDefs, selec
     onSeriesSelected(event.target.value);
   }
 
-  const curDate = new Date(time.toMillis());
-  const eastCoast = SunCalc.getPosition(curDate, 40, 122).altitude;
-  const westCoast = SunCalc.getPosition(curDate, 40, 74).altitude;
+  const curDate = time.toJSDate();
+  // The SunCalc library doesn't seem to handle time zones correctly, so we adjust
+  // here for the East Coast time zone. Obviously not generally correct, but will
+  // work for now.
+  curDate.setTime(curDate.getTime() - (4 * 60 * 60 * 1000));
+  const eastCoast = SunCalc.getTimes(curDate, 40, -74);
+  const westCoast = SunCalc.getTimes(curDate, 40, -120);
+
+  const eastIsSunUp = curDate > eastCoast.sunrise && curDate < eastCoast.sunset;
+  const westIsSunUp = curDate > westCoast.sunrise && curDate < westCoast.sunset;  
 
   return (
     <Appbar position="fixed">
@@ -69,15 +76,19 @@ export const Header: React.FunctionComponent<HeaderProps> = ({ seriesDefs, selec
           )}
         </div>
         <Typography className="header-tracker" align="right" style={{ flex: 1 }}>
-          <span>{target.toString()}</span>
-          <span>East Coast</span>
-          <span>{
-            eastCoast >= 0.000000 ? <WbSunnyIcon></WbSunnyIcon> : <Brightness2Icon></Brightness2Icon>
-          }</span>
+          <span>{units}</span>
+          <span>│</span>
+          <span>{target.toLonLat().toString()}</span>
+          <span>│</span>
           <span>West Coast</span>
           <span>{
-            westCoast >= 0.000000 ? <WbSunnyIcon></WbSunnyIcon> : <Brightness2Icon></Brightness2Icon>
+            westIsSunUp ? <WbSunnyIcon fontSize="small"></WbSunnyIcon> : <Brightness2Icon fontSize="small"></Brightness2Icon>
           }</span>
+          <span>East Coast</span>
+          <span>{
+            eastIsSunUp ? <WbSunnyIcon fontSize="small"></WbSunnyIcon> : <Brightness2Icon fontSize="small"></Brightness2Icon>
+          }</span>
+          <span>│</span>
           <span>{time.toLocaleString(DateTime.DATETIME_SHORT)} UTC</span>
         </Typography>
       </Toolbar>

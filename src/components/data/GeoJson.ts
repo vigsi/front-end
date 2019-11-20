@@ -27,6 +27,7 @@ export type GeoJsonShape = {
         "properties": {
           "name": string
         }
-      },
+      };
     features: GeoFeature[];
+    "properties": { "timestamp": string };
 };
