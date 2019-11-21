@@ -27,6 +27,7 @@ import Typography from '@material-ui/core/Typography'
 import { DateTime } from 'luxon'
 import { Coordinate, Region } from './geom'
 import { DataSeriesDefinition, DataSeriesId } from './data/DataSourceService'
+import { PlaybackInstant } from './PlaybackService'
 import './header.less'
 
 type HeaderProps = {
@@ -35,7 +36,7 @@ type HeaderProps = {
   onSeriesSelected: (id: DataSeriesId) => void;
   target: Coordinate;
   region: Region;
-  time: DateTime;
+  time: PlaybackInstant;
   units: string;
 }
 
@@ -49,17 +50,32 @@ export const Header: React.FunctionComponent<HeaderProps> = ({ seriesDefs, selec
     onSeriesSelected(event.target.value);
   }
 
-  const curDate = time.toJSDate();
-  // The SunCalc library doesn't seem to handle time zones correctly, so we adjust
-  // here for the East Coast time zone. Obviously not generally correct, but will
-  // work for now.
-  curDate.setTime(curDate.getTime() - (4 * 60 * 60 * 1000));
-  const eastCoast = SunCalc.getTimes(curDate, 40, -74);
-  const westCoast = SunCalc.getTimes(curDate, 40, -120);
+  let sunSignal;
 
-  const eastIsSunUp = curDate > eastCoast.sunrise && curDate < eastCoast.sunset;
-  const westIsSunUp = curDate > westCoast.sunrise && curDate < westCoast.sunset;  
+  if (time.stepSize.hours === 1) {
+    const curDate = time.current.toJSDate();
+    // The SunCalc library doesn't seem to handle time zones correctly, so we adjust
+    // here for the East Coast time zone. Obviously not generally correct, but will
+    // work for now.
+    curDate.setTime(curDate.getTime() - (4 * 60 * 60 * 1000));
+    const eastCoast = SunCalc.getTimes(curDate, 40, -74);
+    const westCoast = SunCalc.getTimes(curDate, 40, -120);
 
+    const eastIsSunUp = curDate > eastCoast.sunrise && curDate < eastCoast.sunset;
+    const westIsSunUp = curDate > westCoast.sunrise && curDate < westCoast.sunset;
+
+    sunSignal = (
+      <span>
+      <span>West Coast</span>
+      <span>{
+        westIsSunUp ? <WbSunnyIcon fontSize="small"></WbSunnyIcon> : <Brightness2Icon fontSize="small"></Brightness2Icon>
+      }</span>
+      <span>East Coast</span>
+      <span>{
+        eastIsSunUp ? <WbSunnyIcon fontSize="small"></WbSunnyIcon> : <Brightness2Icon fontSize="small"></Brightness2Icon>
+      }</span>
+      <span>│</span></span>);
+  }
   return (
     <Appbar position="fixed">
       <Toolbar id="header-toolbar">
@@ -80,16 +96,10 @@ export const Header: React.FunctionComponent<HeaderProps> = ({ seriesDefs, selec
           <span>│</span>
           <span>{target.toLonLat().toString()}</span>
           <span>│</span>
-          <span>West Coast</span>
-          <span>{
-            westIsSunUp ? <WbSunnyIcon fontSize="small"></WbSunnyIcon> : <Brightness2Icon fontSize="small"></Brightness2Icon>
-          }</span>
-          <span>East Coast</span>
-          <span>{
-            eastIsSunUp ? <WbSunnyIcon fontSize="small"></WbSunnyIcon> : <Brightness2Icon fontSize="small"></Brightness2Icon>
-          }</span>
+
+          <span>{time.current.toLocaleString(DateTime.DATETIME_SHORT)} UTC</span>
           <span>│</span>
-          <span>{time.toLocaleString(DateTime.DATETIME_SHORT)} UTC</span>
+          <span>{time.stepSize.toString()}</span>
         </Typography>
       </Toolbar>
     </Appbar>);

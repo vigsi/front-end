@@ -78,20 +78,27 @@ export class Playback extends React.Component<PlaybackProps, PlaybackState> {
 
     onShowMinimumDate() {
         this.setState({
-            selectedInterval: Interval.fromDateTimes(this.props.availableInterval.start, this.state.selectedInterval.end)
+            selectedInterval: Interval.fromDateTimes(this.props.availableInterval.start, this.state.selectedInterval.end);
         });
     }
 
     onMiniumDateChanged(evt: any) {
         const date = DateTime.fromISO(evt.target.value);
         this.setState({
-            selectedInterval: Interval.fromDateTimes(date, this.state.selectedInterval.end)
-        })
+            selectedInterval: Interval.fromDateTimes(date, this.state.selectedInterval.end);
+        });
     }
 
     onShowMaximumDate() {
         this.setState({
-            selectedInterval: Interval.fromDateTimes(this.state.selectedInterval.start, this.props.availableInterval.end)
+            selectedInterval: Interval.fromDateTimes(this.state.selectedInterval.start, this.props.availableInterval.end);
+        });
+    }
+
+    onMaximumateChanged(evt: any) {
+        const date = DateTime.fromISO(evt.target.value);
+        this.setState({
+            selectedInterval: Interval.fromDateTimes(this.state.selectedInterval.start, date);
         });
     }
 
@@ -147,7 +154,7 @@ export class Playback extends React.Component<PlaybackProps, PlaybackState> {
                             id="date"
                             type="date"
                             value={this.state.selectedInterval.end.toISODate() || ""}
-                            onChange={() => {}}
+                            onChange={(evt) => this.onMaximumDateChanged(evt)}
                             InputLabelProps={{
                                 shrink: true,
                             }}

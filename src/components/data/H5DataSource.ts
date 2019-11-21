@@ -18,10 +18,9 @@ import { DateTime } from "luxon";
 import { DataSource } from "./DataSource";
 // @ts-ignore
 import proj4 from "proj4";
-import { GeoJsonShape } from "./GeoJson";
-import { Coordinate, Region } from "../geom";
+import { GeoJsonShape, GeoFeature } from "./GeoJson";
+import { Coordinate } from "../geom";
 import { PlaybackInstant } from "../PlaybackService";
-import { string } from "prop-types";
 
 type Link = {
     class: string;
@@ -181,7 +180,7 @@ export class H5DataSource implements DataSource {
         const xLen = data.length - 1;
         const yLen = data[0].length - 1;
            
-        let features = []
+        let features: GeoFeature[] = []
         for (let xi = 0; xi < xLen; xi += 1) {
             for (let yi = 0; yi < yLen; yi += 1) {
                 const pt1 = Coordinate.fromLatLon(coords[xi][yi]).toArray()
@@ -213,7 +212,8 @@ export class H5DataSource implements DataSource {
               },
             'features': features,
             'properties': {
-                'instant': timestamp.toISO()
+                'instant': timestamp.toISO(),
+                'source': 'h5'
             }
         }
     }

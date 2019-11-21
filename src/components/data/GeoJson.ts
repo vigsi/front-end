@@ -29,5 +29,5 @@ export type GeoJsonShape = {
         }
       };
     features: GeoFeature[];
-    "properties": { "timestamp": string };
+    "properties": { "instant": string };
 };

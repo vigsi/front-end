@@ -14,7 +14,7 @@
  * limitations under the License.
 */
 
-import { DateTime, Interval } from "luxon";
+import { DateTime, Interval, Duration } from "luxon";
 import { Observable } from "rxjs";
 import { DataSource } from './DataSource';
 import { H5DataSource } from "./H5DataSource";
@@ -22,6 +22,7 @@ import { CachingDataSource } from "./CachingDataSource";
 import { VigsiDataSource } from "./VigsiDataSource";
 import { GeoJsonShape } from "./GeoJson";
 import { PlaybackInstant } from "../PlaybackService";
+import { SimpleUrlDataSource } from "./SimpleUrlDataSource";
 
 export type DataSeriesId = string;
 
@@ -33,6 +34,9 @@ export type DataSeriesDefinition = {
     id: DataSeriesId;
     name: string;
     color: string;
+    url: string;
+    type: string;
+    duration: Duration;
 }
 
 /**
@@ -47,28 +51,37 @@ export class DataSourceService {
 
     private dataSources: Map<DataSeriesId, DataSource>;
 
+    sources = [
+        //{ id: "meas", name: "Measured", color: "#aa2e25", type: "vigsi" },
+        //{ id: "arima", name: "ARIMA", color: "#1769aa", type: "vigsi" },
+        //{ id: "nn", name: "Neural Net", color: "#00695f", type: "vigsi" },
+        { id: "measdaily", name: "NREL (Daily)", units: "J/m²", color: "#aa2e25", type: "ss3", url: "https://vigsi-data-store.s3.us-east-2.amazonaws.com/measdaily2/", duration: Duration.fromObject({ days: 1 })},
+        { id: "measmonthly", name: "NREL (Monthly)", units: "J/m²", color: "#aa2e25", type: "ss3", url: "https://vigsi-data-store.s3.us-east-2.amazonaws.com/measmonthly/", duration: Duration.fromObject({ months: 1 })},
+        { id: "measyearly", name: "NREL (Yearly)", units: "J/m²", color: "#aa2e25", type: "ss3", url: "https://vigsi-data-store.s3.us-east-2.amazonaws.com/measyearly/", duration: Duration.fromObject({ years: 1 })},
+        //{ id: "h5", name: "NREL", units: "W/m²", color: "#aa2e25", type: "h5", url: "", duration: Duration.fromObject({ hours: 1 })},
+    ];
+
     constructor(private host: string, private timeObservable: Observable<PlaybackInstant>) {
         this.dataSources = new Map();
         timeObservable.subscribe((time) => this.updateCache(time));
+    }
+
+    getDataSeriesById(id: string): DataSeriesDefinition {
+        return this.sources.filter(source => source.id == id)[0]
     }
 
     /**
      * Get a list of the available data series that we can display.
      */
     getDataSeries() : Promise<DataSeriesDefinition[]> {
-        const sources = [
-            //{ id: "meas", name: "Measured", color: "#aa2e25", type: "vigsi" },
-            //{ id: "arima", name: "ARIMA", color: "#1769aa", type: "vigsi" },
-            //{ id: "nn", name: "Neural Net", color: "#00695f", type: "vigsi" },
-            { id: "h5", name: "NREL", color: "#aa2e25", type: "h5"},
-        ];
-
         // Only populate the data caches once
         if (this.dataSources.size === 0) {
-            sources.forEach(source => {
+            this.sources.forEach(source => {
                 let backend;
                 if (source.type == "h5") {
                     backend = new CachingDataSource(new H5DataSource())
+                } else if (source.type == "ss3") {
+                    backend = new CachingDataSource(new SimpleUrlDataSource(source.url))
                 } else {
                     backend = new VigsiDataSource(this.host, source.id)
                 }
@@ -77,7 +90,7 @@ export class DataSourceService {
             });
         }
 
-        return Promise.resolve(sources);
+        return Promise.resolve(this.sources);
     }
 
     /**
@@ -87,12 +100,14 @@ export class DataSourceService {
         const end = DateTime.fromObject({ 
            year : 2013,
            month: 12,
-           day: 31
+           day: 31,
+           zone: "UTC"
         });
         const start = DateTime.fromObject({
             year: 2007,
             month: 1,
-            day: 1
+            day: 1,
+            zone: "UTC"
         })
         return Promise.resolve(
             Interval.fromDateTimes(

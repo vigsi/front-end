@@ -39,11 +39,6 @@ export type PlaybackInstant {
  */
 export class PlaybackService {
     /**
-     * The interval we are using to 
-     */
-    stepSize: Duration;
-
-    /**
      * The interval, if we have one so that we can cancel it.
      */
     interval: number | undefined;
@@ -54,8 +49,7 @@ export class PlaybackService {
      * @param onValueChanged Callback handler for updating the value by this class.
      * @param onGetValue Callback handler to get the current value.
      */
-    constructor(private onValueChanged: (value: PlaybackInstant) => void, private onGetValue: () => DateTime) {
-        this.stepSize = Duration.fromObject({hours: 1});
+    constructor(private onValueChanged: (value: PlaybackInstant) => void, private onGetValue: () => PlaybackInstant) {
         this.interval = undefined
     }
 
@@ -65,9 +59,10 @@ export class PlaybackService {
         }
         
         this.interval = window.setInterval(() => {
+            const instant = this.onGetValue();
             const playbackInterval = {
-                current: this.onGetValue().plus(this.stepSize),
-                stepSize: this.stepSize
+                current: instant.current.plus(instant.stepSize),
+                stepSize: instant.stepSize
             };
             this.onValueChanged(playbackInterval)
         }, 2000)

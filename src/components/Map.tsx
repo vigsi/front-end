@@ -54,16 +54,20 @@ const colorFromValue = (value: number) => {
 const createStyle = (feature: any) => {
     const values = feature.values_;
     
-    let divisor = 1;
+    let value = 1;
     if (values.ghi) {
-        divisor = 1100
+        value = values.ghi /1100
     } else if (values.energy) {
-        divisor = 3600000
+        value = values.energy / 36000000
+    } else if (values.monthlyenergy) {
+        value = values.monthlyenergy / 1080000000
+    } else if (values.yearlyenergy) {
+        value = values.yearlyenergy / 12960000000
     }
     // The largest value for GHI is about 1100. So we define that as our maximum
     return new Style({
         fill: new Fill({
-          color: colorFromValue(feature.values_.ghi / divisor)
+          color: colorFromValue(value)
         }),
         stroke: new Stroke({
             width: 0.1,
@@ -82,7 +86,8 @@ const borderStyle = new Style({
 
 export default class App extends React.Component<MapProps, MapState> {
     dataLayer: VectorLayer
-    timestamp: string
+    timestamp: string | undefined
+    source : string | undefined
 
     constructor(props: MapProps) {
         super(props)
@@ -133,7 +138,6 @@ export default class App extends React.Component<MapProps, MapState> {
             <div>
                 <div id="map-legend">
                     {scale}
-                    {this.timestamp}
                 </div>
                 <div ref="mapContainer" id="map-container" style={{ width: mapWidth, height: mapHeight}} />
             </div>
@@ -234,6 +238,7 @@ export default class App extends React.Component<MapProps, MapState> {
 
             this.dataLayer.setSource(vectorSource);
             this.timestamp = this.props.data.properties.instant;
+            this.source = this.props.data.properties.source;
         }
     }
 }

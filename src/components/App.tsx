@@ -120,8 +120,8 @@ export class App extends React.Component<{}, AppState> {
         this.resizeTimeoutId = null;
 
         const time: PlaybackInstant = {
-            current: DateTime.local(),
-            stepSize: Duration.fromObject({hours: 1})
+            current: DateTime.utc(),
+            stepSize: Duration.fromObject({days: 1})
         }
         this.timeSubject = new BehaviorSubject<PlaybackInstant>(time);
 
@@ -132,20 +132,31 @@ export class App extends React.Component<{}, AppState> {
             (value: PlaybackInstant) => {
                 this.setDisplayTime(value)
             },
-            () => this.getDisplayTime()
+            () => this.getPlaybackInstant()
         );
 
         // Similar to the playback service, we use this as a long-lived
         // service to fetch and cache the data we want to display.
         this.dataSourceService = new DataSourceService('//localhost:8080', this.timeSubject);
 
-        const initialTime = DateTime.utc().set({minute: 0, second: 0, millisecond: 0});
+        const end = DateTime.fromObject({ 
+            year : 2013,
+            month: 12,
+            day: 31,
+            zone: "UTC"
+         });
+         const start = DateTime.fromObject({
+             year: 2007,
+             month: 1,
+             day: 1,
+             zone: "UTC"
+         });
 
         this.state = {
             // Undefined are annoying so to avoid that, just initialize to now. We'll
             // update shortly
             time,
-            availableTimespan: Interval.fromDateTimes(initialTime, initialTime),
+            availableTimespan: Interval.fromDateTimes(start, end),
             target: new Coordinate(-11718716, 4869217),
             region: new Region(new Coordinate(-13486347, 2817851), new Coordinate(-8594378, 6731427)),
             seriesDefs: [],
@@ -188,6 +199,18 @@ export class App extends React.Component<{}, AppState> {
      * Updates the user selected time in the state.
      */
     setDisplayTime(value: PlaybackInstant) {
+        // First check that the datetime is correctly bounded based on the
+        // current step size
+        if (value.stepSize.hours === 1) {
+            value.current = value.current.set({ minute: 0, second: 0, millisecond: 0});
+        } else if (value.stepSize.days === 1) {
+            value.current = value.current.set({ hour: 0, minute: 0, second: 0, millisecond: 0});
+        } else if (value.stepSize.months === 1) {
+            value.current = value.current.set({ day: 1, hour: 0, minute: 0, second: 0, millisecond: 0});
+        } else if (value.stepSize.years === 1) {
+            value.current = value.current.set({ month: 1, day: 1, hour: 0, minute: 0, second: 0, millisecond: 0});
+        }
+
         this.timeSubject.next(value);
         this.setState({
             time: value
@@ -214,6 +237,15 @@ export class App extends React.Component<{}, AppState> {
      */
     getDisplayTime(): DateTime {
         return this.state.time.current;
+    }
+
+    /**
+     * Gets the user selected time from the state.
+     * We use this to ensure that all components have a consistent
+     * view of the current time.
+     */
+    getPlaybackInstant(): PlaybackInstant {
+        return this.state.time;
     }
 
      /**
@@ -258,11 +290,18 @@ export class App extends React.Component<{}, AppState> {
                     seriesDefs={this.state.seriesDefs}
                     selectedSeriesId={this.state.selectedSeriesId}
                     onSeriesSelected={(id: DataSeriesId) => {
-                        this.setState({ selectedSeriesId: id })
+                        const source = this.dataSourceService.getDataSeriesById(id);
+                        this.setState({
+                            time: {
+                                current: this.state.time.current,
+                                stepSize: source.duration,
+                            },
+                            selectedSeriesId: id
+                        })
                     }}
                     target={this.state.target}
                     region={this.state.region}
-                    time={this.state.time.current}
+                    time={this.state.time}
                     units="W/m²"
                 />
     

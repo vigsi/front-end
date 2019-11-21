@@ -39,7 +39,9 @@ const mapDataForTarget = (id: string, data: GeoJsonShape, target: Coordinate): D
       items.push({
         y: coordList[0][1],
         ghi: data.features[i].properties.ghi,
-        energy: data.features[i].properties.energy,
+        energy: data.features[i].properties.energy && data.features[i].properties.energy / 1000,
+        monthlyenergy: data.features[i].properties.monthlyenergy && data.features[i].properties.monthlyenergy / 1000,
+        yearlyenergy: data.features[i].properties.yearlyenergy && data.features[i].properties.yearlyenergy / 1000,
       })
     }
   }
@@ -63,6 +65,18 @@ export default class Vertical extends React.Component<ChartProps> {
 
     render () {
       const yDomain = this.props.region.toLonLat().yDomain();
+      let prop = "";
+      if (this.filteredData.length && this.filteredData[0].data.length) {
+        if (this.filteredData[0].data[0].ghi) {
+          prop = "ghi"
+        } else if (this.filteredData[0].data[0].energy) {
+          prop = "energy"
+        } else if (this.filteredData[0].data[0].monthlyenergy) {
+          prop = "monthlyenergy"
+        } else if (this.filteredData[0].data[0].yearlyenergy) {
+          prop = "yearlyenergy"
+        }
+      }
 
       const lines = this.filteredData.map(def => {
         return (<VictoryLine
@@ -72,7 +86,7 @@ export default class Vertical extends React.Component<ChartProps> {
           // data accessor for x values
           x="y"
           // data accessor for y values
-          y="ghi"
+          y={prop}
           style={{data: {stroke: "#aa2e25"}}}
         />);
       });
