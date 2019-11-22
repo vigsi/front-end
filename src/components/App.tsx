@@ -279,7 +279,14 @@ export class App extends React.Component<{}, AppState> {
     }
 
     render() {
-        const valueDomain: [number, number] = [0, 1200];
+        let valueDomain: [number, number] = [0, 1200];
+        if (this.state.time.stepSize.days === 1) {
+            valueDomain = [0, 36000000];
+        } else if (this.state.time.stepSize.months === 1) {
+            valueDomain = [540000000, 1080000000];
+        } else if (this.state.time.stepSize.years === 1) {
+            valueDomain = [5000000000, 10000000000];
+        }
 
         const mapWidth = Math.max(100, this.state.width - 100);
         const mapHeight = Math.max(100, this.state.height - 200);
@@ -302,7 +309,6 @@ export class App extends React.Component<{}, AppState> {
                     target={this.state.target}
                     region={this.state.region}
                     time={this.state.time}
-                    units="W/m²"
                 />
     
                 <Paper id="main-content">
@@ -333,7 +339,7 @@ export class App extends React.Component<{}, AppState> {
                             <Horizontal data={this.state.data} region={this.state.region} target={this.state.target} valueDomain={valueDomain} seriesDefs={this.state.seriesDefs} mapWidth={mapWidth} mapHeight={mapHeight}/>
                         </div>
                         <div className="main-content__right">
-                            <Legend seriesDefs={this.state.seriesDefs}/>
+                            <Legend seriesDefs={this.state.seriesDefs} selectedId={this.state.selectedSeriesId}/>
                         </div>
                     </div>
                 </Paper>

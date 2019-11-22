@@ -15,6 +15,7 @@
 */
 
 import * as React from 'react'
+import { Duration } from "luxon";
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
@@ -24,7 +25,8 @@ import './legend.less'
 import { DataSeriesDefinition } from './data/DataSourceService'
 
 type LegendProps = {
-    seriesDefs: DataSeriesDefinition[]
+    seriesDefs: DataSeriesDefinition[];
+    selectedId: string;
 }
 
 function HomeIcon(props: SvgIconProps) {
@@ -35,16 +37,20 @@ function HomeIcon(props: SvgIconProps) {
     );
   }
 
-export const Legend: React.FunctionComponent<LegendProps> = ({ seriesDefs }) => {
-    const listItems = seriesDefs.map(def => {
-        return (
-            <ListItem key={def.id}>
-                <ListItemIcon>
-                    <HomeIcon style={{color: def.color}}/>
-                </ListItemIcon>
-                <ListItemText>{def.name}</ListItemText>
-            </ListItem>
-        );
+export const Legend: React.FunctionComponent<LegendProps> = ({ seriesDefs, selectedId }) => {
+    const selectedDef = seriesDefs.find(def => def.id == selectedId);
+    const selectedStepSize = selectedDef && selectedDef.duration;
+    const listItems = seriesDefs
+        .filter(def => def.duration == selectedStepSize)
+        .map(def => {
+            return (
+                <ListItem key={def.id}>
+                    <ListItemIcon>
+                        <HomeIcon style={{color: def.color}}/>
+                    </ListItemIcon>
+                    <ListItemText>{def.name}</ListItemText>
+                </ListItem>
+            );
     })
     return (<List component="ul" id="legend">{listItems}</List>)
 }

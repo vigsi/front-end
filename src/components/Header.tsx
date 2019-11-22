@@ -37,10 +37,9 @@ type HeaderProps = {
   target: Coordinate;
   region: Region;
   time: PlaybackInstant;
-  units: string;
 }
 
-export const Header: React.FunctionComponent<HeaderProps> = ({ seriesDefs, selectedSeriesId, onSeriesSelected, target, region, time, units }) =>
+export const Header: React.FunctionComponent<HeaderProps> = ({ seriesDefs, selectedSeriesId, onSeriesSelected, target, region, time }) =>
 {
   const menuItems = seriesDefs.map(def => {
     return (<MenuItem value={def.id} key={def.id}>{def.name}</MenuItem>);
@@ -76,6 +75,9 @@ export const Header: React.FunctionComponent<HeaderProps> = ({ seriesDefs, selec
       }</span>
       <span>│</span></span>);
   }
+
+  const selectedDef = seriesDefs.find(def => def.id == selectedSeriesId);
+  const unit = selectedDef && selectedDef.unit;
   return (
     <Appbar position="fixed">
       <Toolbar id="header-toolbar">
@@ -92,7 +94,7 @@ export const Header: React.FunctionComponent<HeaderProps> = ({ seriesDefs, selec
           )}
         </div>
         <Typography className="header-tracker" align="right" style={{ flex: 1 }}>
-          <span>{units}</span>
+          <span>{unit}</span>
           <span>│</span>
           <span>{target.toLonLat().toString()}</span>
           <span>│</span>

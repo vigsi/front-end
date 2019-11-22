@@ -47,27 +47,29 @@ type MapState = {
     map: Map;
 }
 
-const colorFromValue = (value: number) => {
-    return d3ScaleChromatic.interpolateGreys(1 - value);
+const colorFromValue = (value: number, valueDomain: [number, number]) => {
+    const fraction = (value - valueDomain[0]) / (valueDomain[1] - valueDomain[0])
+    return d3ScaleChromatic.interpolateGreys(1 - fraction);
 }
 
 const createStyle = (feature: any) => {
     const values = feature.values_;
-    
+    const valueDomain = App.valueDomain
+
     let value = 1;
     if (values.ghi) {
-        value = values.ghi /1100
+        value = values.ghi
     } else if (values.energy) {
-        value = values.energy / 36000000
+        value = values.energy
     } else if (values.monthlyenergy) {
-        value = values.monthlyenergy / 1080000000
+        value = values.monthlyenergy
     } else if (values.yearlyenergy) {
-        value = values.yearlyenergy / 12960000000
+        value = values.yearlyenergy
     }
     // The largest value for GHI is about 1100. So we define that as our maximum
     return new Style({
         fill: new Fill({
-          color: colorFromValue(value)
+          color: colorFromValue(value, App.valueDomain)
         }),
         stroke: new Stroke({
             width: 0.1,
@@ -88,6 +90,7 @@ export default class App extends React.Component<MapProps, MapState> {
     dataLayer: VectorLayer
     timestamp: string | undefined
     source : string | undefined
+    static valueDomain: [number, number] = [0, 1200]
 
     constructor(props: MapProps) {
         super(props)
@@ -129,7 +132,7 @@ export default class App extends React.Component<MapProps, MapState> {
         const scale = steps.map(v => {
             return (
                 <div key={"cc" + v} className={"map-legend__item"}>
-                    <div key={"c" + v} style={{ backgroundColor: colorFromValue(v/maxValue) }}></div>
+                    <div key={"c" + v} style={{ backgroundColor: colorFromValue(v, App.valueDomain) }}></div>
                     <Typography key={"t" + v} variant="body2">{v}</Typography>
                 </div>);
         })
@@ -229,6 +232,7 @@ export default class App extends React.Component<MapProps, MapState> {
 
     componentDidUpdate(prevProps: MapProps) {
         if (prevProps.data !== this.props.data && this.props.data) {
+            App.valueDomain = this.props.valueDomain;
             const vectorSource = new VectorSource({
                 features: (new GeoJSON()).readFeatures(this.props.data, {
                     dataProjection: 'EPSG:4326',

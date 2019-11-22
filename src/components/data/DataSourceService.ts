@@ -37,6 +37,7 @@ export type DataSeriesDefinition = {
     url: string;
     type: string;
     duration: Duration;
+    unit: string;
 }
 
 /**
@@ -55,9 +56,9 @@ export class DataSourceService {
         //{ id: "meas", name: "Measured", color: "#aa2e25", type: "vigsi" },
         //{ id: "arima", name: "ARIMA", color: "#1769aa", type: "vigsi" },
         //{ id: "nn", name: "Neural Net", color: "#00695f", type: "vigsi" },
-        { id: "measdaily", name: "NREL (Daily)", units: "J/m²", color: "#aa2e25", type: "ss3", url: "https://vigsi-data-store.s3.us-east-2.amazonaws.com/measdaily2/", duration: Duration.fromObject({ days: 1 })},
-        { id: "measmonthly", name: "NREL (Monthly)", units: "J/m²", color: "#aa2e25", type: "ss3", url: "https://vigsi-data-store.s3.us-east-2.amazonaws.com/measmonthly/", duration: Duration.fromObject({ months: 1 })},
-        { id: "measyearly", name: "NREL (Yearly)", units: "J/m²", color: "#aa2e25", type: "ss3", url: "https://vigsi-data-store.s3.us-east-2.amazonaws.com/measyearly/", duration: Duration.fromObject({ years: 1 })},
+        { id: "measdaily", name: "NREL (Daily)", unit: "kJ/m²", color: "#aa2e25", type: "ss3", url: "https://vigsi-data-store.s3.us-east-2.amazonaws.com/measdaily2/", duration: Duration.fromObject({ days: 1 })},
+        { id: "measmonthly", name: "NREL (Monthly)", unit: "kJ/m²", color: "#aa2e25", type: "ss3", url: "https://vigsi-data-store.s3.us-east-2.amazonaws.com/measmonthly/", duration: Duration.fromObject({ months: 1 })},
+        { id: "measyearly", name: "NREL (Yearly)", unit: "kJ/m²", color: "#aa2e25", type: "ss3", url: "https://vigsi-data-store.s3.us-east-2.amazonaws.com/measyearly/", duration: Duration.fromObject({ years: 1 })},
         //{ id: "h5", name: "NREL", units: "W/m²", color: "#aa2e25", type: "h5", url: "", duration: Duration.fromObject({ hours: 1 })},
     ];
 
@@ -108,7 +109,7 @@ export class DataSourceService {
             month: 1,
             day: 1,
             zone: "UTC"
-        })
+        });
         return Promise.resolve(
             Interval.fromDateTimes(
                 start,
