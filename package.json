@@ -1,5 +1,5 @@
 {
-  "name": "cse6242-project",
+  "name": "vigsi",
   "version": "1.0.0",
   "description": "https://taylor.callsen.me/using-reactflux-with-openlayers-3-and-other-third-party-libraries/\r https://codesandbox.io/s/43p10r6w94\r https://stackoverflow.com/questions/39130541/how-to-precache-tiles-with-openlayers-for-date-animation\r https://openlayers.org/en/latest/examples/wms-time.html",
   "main": "src/index.tsx",
@@ -13,7 +13,7 @@
     "type-check": "tsc --noEmit",
     "type-check:watch": "tsc --noEmit --watch",
     "lint": "tslint -c tslint.json --project .",
-    "predeploy": "rm -rf dist && parcel build index.html --public-url /font-end",
+    "predeploy": "rm -rf dist && parcel build index.html --public-url /vigsi",
     "deploy": "gh-pages -d dist"
   },
   "author": "",
@@ -48,7 +48,6 @@
     "@types/suncalc": "^1.8.0",
     "@types/victory": "^33.0.0",
     "d3-scale-chromatic": "^1.5.0",
-    "gh-pages": "^2.1.1",
     "luxon": "^1.19.3",
     "ol": "^6.0.1",
     "proj4": "^2.5.0",
@@ -71,6 +70,7 @@
     "@types/recharts": "^1.1.22",
     "babel-core": "^6.26.3",
     "concurrently": "^4.1.0",
+    "gh-pages": "^2.1.1",
     "jest": "^24.7.1",
     "jest-css-modules": "^2.1.0",
     "jest-dom": "^3.1.3",
