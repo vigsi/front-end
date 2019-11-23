@@ -301,11 +301,11 @@ export class App extends React.Component<{}, AppState> {
                     onSeriesSelected={(id: DataSeriesId) => {
                         const source = this.dataSourceService.getDataSeriesById(id);
                         this.setState({
-                            time: {
-                                current: this.state.time.current,
-                                stepSize: source.duration,
-                            },
                             selectedSeriesId: id
+                        })
+                        this.setDisplayTime({
+                            current: this.state.time.current,
+                            stepSize: source.duration,
                         })
                     }}
                     target={this.state.target}
