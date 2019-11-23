@@ -14,19 +14,27 @@
  * limitations under the License.
 */
 
-import { DateTime } from "luxon";
+import { DateTime, Duration } from "luxon";
 import { DataSource } from "./DataSource";
 import { PlaybackInstant } from "../PlaybackService";
 import { GeoJsonShape } from "./GeoJson";
 
 export class SimpleUrlDataSource implements DataSource {
-    constructor(private urlPrefix: string) {}
+    constructor(private urlPrefix: string, private stepSize: Duration) {}
 
     onTimeChanged(timestamp: PlaybackInstant) {
                 // This doesn't do anything with future data so this function is empty.
     }
 
     get(timestamp: DateTime): Promise<GeoJsonShape> {
+        if (this.stepSize.days === 1 && timestamp.hour !== 0) {
+            return Promise.reject("no time for this data source");
+        } else if (this.stepSize.months === 1 && (timestamp.hour !== 0 || timestamp.day !== 1)) {
+            return Promise.reject("no time for this data source");
+        } else if (this.stepSize.years === 1&& (timestamp.hour !== 0 || timestamp.day !== 1 || timestamp.month !== 1)) {
+            return Promise.reject("no time for this data source");
+        }
+
         const url = this.urlPrefix + timestamp.toUTC().toISO().replace(/:/g, "")
         return fetch(url)
             .then(resp => resp.json())
@@ -42,9 +50,10 @@ export class SimpleUrlDataSource implements DataSource {
                     'features': features,
                     'properties': {
                         'instant': timestamp.toISO(),
-                        'source': 's3'
-                    }
-                }
+                        'source': 's3',
+                        'url': this.urlPrefix,
+                    },
+                };
             });
     }
 }

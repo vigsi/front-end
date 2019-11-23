@@ -16,7 +16,7 @@
 
 import * as React from 'react'
 import { toLonLat } from 'ol/proj'
-import { ChartProps } from './shared'
+import { ChartProps, ChartState } from './shared'
 import { VictoryChart, VictoryAxis, VictoryLine, VictoryTheme, VictoryContainer, VictoryLabel } from 'victory'
 import { GeoJsonShape } from '../data/GeoJson'
 import { Coordinate } from '../geom'
@@ -39,9 +39,9 @@ const mapDataForTarget = (id: string, data: GeoJsonShape, target: Coordinate): D
       items.push({
         y: coordList[0][1],
         ghi: data.features[i].properties.ghi,
-        energy: data.features[i].properties.energy && data.features[i].properties.energy / 1000,
-        monthlyenergy: data.features[i].properties.monthlyenergy && data.features[i].properties.monthlyenergy / 1000,
-        yearlyenergy: data.features[i].properties.yearlyenergy && data.features[i].properties.yearlyenergy / 1000,
+        energy: data.features[i].properties.energy && data.features[i].properties.energy,
+        monthlyenergy: data.features[i].properties.monthlyenergy && data.features[i].properties.monthlyenergy,
+        yearlyenergy: data.features[i].properties.yearlyenergy && data.features[i].properties.yearlyenergy,
       })
     }
   }
@@ -56,29 +56,27 @@ const mapDataForTarget = (id: string, data: GeoJsonShape, target: Coordinate): D
   }
 }
 
-export default class Vertical extends React.Component<ChartProps> {
+export default class Vertical extends React.Component<ChartProps, ChartState> {
     state = {
-        count: 0
+        data: []
     };
-
-    filteredData: DataSet[] = []
 
     render () {
       const yDomain = this.props.region.toLonLat().yDomain();
       let prop = "";
-      if (this.filteredData.length && this.filteredData[0].data.length) {
-        if (this.filteredData[0].data[0].ghi) {
+      if (this.state.data.length && this.state.data[0].data.length) {
+        if (this.state.data[0].data[0].ghi) {
           prop = "ghi"
-        } else if (this.filteredData[0].data[0].energy) {
+        } else if (this.state.data[0].data[0].energy) {
           prop = "energy"
-        } else if (this.filteredData[0].data[0].monthlyenergy) {
+        } else if (this.state.data[0].data[0].monthlyenergy) {
           prop = "monthlyenergy"
-        } else if (this.filteredData[0].data[0].yearlyenergy) {
+        } else if (this.state.data[0].data[0].yearlyenergy) {
           prop = "yearlyenergy"
         }
       }
 
-      const lines = this.filteredData.map(def => {
+      const lines = this.state.data.map(def => {
         return (<VictoryLine
           key={def.id}
           horizontal={true}
@@ -101,8 +99,11 @@ export default class Vertical extends React.Component<ChartProps> {
 
     componentDidUpdate(prevProps: ChartProps) {
       if (this.props.data && (prevProps.data !== this.props.data || prevProps.target !== this.props.target)) {
-        this.filteredData = []
-        this.filteredData.push(mapDataForTarget("NREL", this.props.data, this.props.target))
+        this.setState({
+          data: [
+            mapDataForTarget("NREL", this.props.data, this.props.target)
+          ]
+        })
       }
     }
 }

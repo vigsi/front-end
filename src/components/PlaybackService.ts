@@ -27,7 +27,7 @@ export enum PlaybackMode {
     Play,
 }
 
-export type PlaybackInstant {
+export type PlaybackInstant = {
     current: DateTime;
     stepSize: Duration;
 }

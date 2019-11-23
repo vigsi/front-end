@@ -185,14 +185,16 @@ export class App extends React.Component<{}, AppState> {
             .then(availableTimespan => {
                 this.setState({
                     availableTimespan,
-                    // Once we have an available timespan, set the initial time
-                    // to the beginning
-                    time: {
-                        current: availableTimespan.start,
-                        stepSize: this.state.time.stepSize
-                    }
-                })
-            });
+                });
+
+                // Once we have an available timespan, set the initial time
+                // to the beginning
+                const playbackTime = {
+                    current: availableTimespan.start,
+                    stepSize: this.state.time.stepSize
+                };
+                this.setDisplayTime(playbackTime);
+            })
     }
 
     /**

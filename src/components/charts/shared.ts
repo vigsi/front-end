@@ -27,3 +27,13 @@ export type ChartProps = {
     seriesDefs: DataSeriesDefinition[];
     data: GeoJsonShape | undefined;
 }
+
+
+export type DataSet = {
+    id: string,
+    data: {},
+}
+
+export type ChartState = {
+    data: DataSet[]
+}

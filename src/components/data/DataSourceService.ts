@@ -82,7 +82,7 @@ export class DataSourceService {
                 if (source.type == "h5") {
                     backend = new CachingDataSource(new H5DataSource())
                 } else if (source.type == "ss3") {
-                    backend = new CachingDataSource(new SimpleUrlDataSource(source.url))
+                    backend = new CachingDataSource(new SimpleUrlDataSource(source.url, source.duration))
                 } else {
                     backend = new VigsiDataSource(this.host, source.id)
                 }
