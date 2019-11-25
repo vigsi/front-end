@@ -25,7 +25,6 @@ import SkipNext from '@material-ui/icons/SkipNext'
 import SkipPrevious from '@material-ui/icons/SkipPrevious'
 import StopIcon from '@material-ui/icons/Stop'
 import './playback.less'
-import { interfaceDeclaration } from '@babel/types'
 
 type PlaybackState = {
     selectedInterval: Interval

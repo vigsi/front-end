@@ -38,6 +38,7 @@ export type DataSeriesDefinition = {
     type: string;
     duration: Duration;
     unit: string;
+    desc: string;
 }
 
 /**
@@ -53,10 +54,10 @@ export class DataSourceService {
     private dataSources: Map<DataSeriesId, DataSource>;
 
     sources = [
-        { id: "measdaily", name: "NREL (Daily)", unit: "kJ/m²", color: "#aa2e25", type: "ss3", url: "https://vigsi-data-store.s3.us-east-2.amazonaws.com/measdaily2/", duration: Duration.fromObject({ days: 1 })},
-        { id: "measmonthly", name: "NREL (Monthly)", unit: "kJ/m²", color: "#aa2e25", type: "ss3", url: "https://vigsi-data-store.s3.us-east-2.amazonaws.com/measmonthly/", duration: Duration.fromObject({ months: 1 })},
-        { id: "measyearly", name: "NREL (Yearly)", unit: "kJ/m²", color: "#aa2e25", type: "ss3", url: "https://vigsi-data-store.s3.us-east-2.amazonaws.com/measyearly/", duration: Duration.fromObject({ years: 1 })},
-        { id: "arimadaily", name: "ARIMA (Daily)", unit: "kJ/m²", color: "#aa2e25", type: "ss3", url: "https://vigsi-data-store.s3.us-east-2.amazonaws.com/arimadaily/", duration: Duration.fromObject({ days: 1 })},
+        { id: "measdaily", name: "NREL (Daily)", unit: "kJ/m²", color: "#aa2e25", type: "ss3", url: "https://vigsi-data-store.s3.us-east-2.amazonaws.com/measdaily2/", duration: Duration.fromObject({ days: 1 }), desc: "Total daily solar energy as calculated by integrating the step-wise hourly measured data function."},
+        { id: "measmonthly", name: "NREL (Monthly)", unit: "kJ/m²", color: "#aa2e25", type: "ss3", url: "https://vigsi-data-store.s3.us-east-2.amazonaws.com/measmonthly/", duration: Duration.fromObject({ months: 1 }), desc: ""},
+        { id: "measyearly", name: "NREL (Yearly)", unit: "kJ/m²", color: "#aa2e25", type: "ss3", url: "https://vigsi-data-store.s3.us-east-2.amazonaws.com/measyearly/", duration: Duration.fromObject({ years: 1 }), desc: ""},
+        { id: "arimadaily", name: "ARIMA (Daily)", unit: "kJ/m²", color: "#aa2e25", type: "ss3", url: "https://vigsi-data-store.s3.us-east-2.amazonaws.com/arimadaily/", duration: Duration.fromObject({ days: 1 }), desc: ""},
         //{ id: "h5", name: "NREL", unit: "W/m²", color: "#aa2e25", type: "h5", url: "", duration: Duration.fromObject({ hours: 1 })},
     ];
 
