@@ -121,7 +121,7 @@ export class App extends React.Component<{}, AppState> {
 
         const time: PlaybackInstant = {
             current: DateTime.utc(),
-            stepSize: Duration.fromObject({days: 1})
+            stepSize: Duration.fromObject({hours: 1})
         }
         this.timeSubject = new BehaviorSubject<PlaybackInstant>(time);
 
@@ -282,7 +282,9 @@ export class App extends React.Component<{}, AppState> {
 
     render() {
         let valueDomain: [number, number] = [0, 1200];
-        if (this.state.time.stepSize.days === 1) {
+        if (this.state.time.stepSize.hours === 1) {
+            valueDomain = [0, 1200];
+        } else if (this.state.time.stepSize.days === 1) {
             valueDomain = [0, 36000000];
         } else if (this.state.time.stepSize.months === 1) {
             valueDomain = [540000000, 1080000000];

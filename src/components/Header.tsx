@@ -72,10 +72,6 @@ export const Header: React.FunctionComponent<HeaderProps> = ({ seriesDefs, selec
   let sunSignal = undefined;
   if (time.stepSize.hours === 1) {
     const curDate = time.current.toJSDate();
-    // The SunCalc library doesn't seem to handle time zones correctly, so we adjust
-    // here for the East Coast time zone. Obviously not generally correct, but will
-    // work for now.
-    curDate.setTime(curDate.getTime() - (4 * 60 * 60 * 1000));
     const eastCoast = SunCalc.getTimes(curDate, 40, -74);
     const westCoast = SunCalc.getTimes(curDate, 40, -120);
 
@@ -118,6 +114,7 @@ export const Header: React.FunctionComponent<HeaderProps> = ({ seriesDefs, selec
             </IconButton>
         </Tooltip>
         <Typography className="header-tracker" align="right" style={{ flex: 1 }}>
+          <span>{sunSignal}</span>
           <span>{unit}</span>
           <span>│</span>
           <span>{target.toLonLat().toString()}</span>

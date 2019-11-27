@@ -22,11 +22,6 @@ import { GeoJsonShape } from '../data/GeoJson'
 import { Coordinate } from '../geom'
 import './chart.less'
 
-type DataSet = {
-  id: string,
-  data: {},
-}
-
 const mapDataForTarget = (id: string, data: GeoJsonShape, target: Coordinate): DataSet => {
   const pos = toLonLat([target.x, target.y]);
   const posY = pos[1]
@@ -67,13 +62,13 @@ export default class Horizontal extends React.Component<ChartProps, ChartState> 
 
       let prop = "";
       if (this.state.data.length && this.state.data[0].data.length) {
-        if (this.state.data[0].data[0].ghi) {
+        if (this.state.data[0].data[0].ghi !== undefined) {
           prop = "ghi"
-        } else if (this.state.data[0].data[0].energy) {
+        } else if (this.state.data[0].data[0].energy !== undefined) {
           prop = "energy"
-        } else if (this.state.data[0].data[0].monthlyenergy) {
+        } else if (this.state.data[0].data[0].monthlyenergy !== undefined) {
           prop = "monthlyenergy"
-        } else if (this.state.data[0].data[0].yearlyenergy) {
+        } else if (this.state.data[0].data[0].yearlyenergy !== undefined) {
           prop = "yearlyenergy"
         }
       }

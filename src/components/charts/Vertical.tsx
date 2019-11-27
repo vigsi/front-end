@@ -16,15 +16,10 @@
 
 import * as React from 'react'
 import { toLonLat } from 'ol/proj'
-import { ChartProps, ChartState } from './shared'
+import { ChartProps, ChartState, DataSet } from './shared'
 import { VictoryChart, VictoryAxis, VictoryLine, VictoryTheme, VictoryContainer, VictoryLabel } from 'victory'
 import { GeoJsonShape } from '../data/GeoJson'
 import { Coordinate } from '../geom'
-
-type DataSet = {
-  id: string,
-  data: {},
-}
 
 const mapDataForTarget = (id: string, data: GeoJsonShape, target: Coordinate): DataSet => {
   const pos = toLonLat([target.x, target.y]);
@@ -65,13 +60,13 @@ export default class Vertical extends React.Component<ChartProps, ChartState> {
       const yDomain = this.props.region.toLonLat().yDomain();
       let prop = "";
       if (this.state.data.length && this.state.data[0].data.length) {
-        if (this.state.data[0].data[0].ghi) {
+        if (this.state.data[0].data[0].ghi !== undefined) {
           prop = "ghi"
-        } else if (this.state.data[0].data[0].energy) {
+        } else if (this.state.data[0].data[0].energy !== undefined) {
           prop = "energy"
-        } else if (this.state.data[0].data[0].monthlyenergy) {
+        } else if (this.state.data[0].data[0].monthlyenergy !== undefined) {
           prop = "monthlyenergy"
-        } else if (this.state.data[0].data[0].yearlyenergy) {
+        } else if (this.state.data[0].data[0].yearlyenergy !== undefined) {
           prop = "yearlyenergy"
         }
       }
