@@ -224,10 +224,12 @@ export class App extends React.Component<{}, AppState> {
                 .then(data => {
                     this.setState({
                         data
-                    })
+                    });
                 })
                 .catch(err => {
-                    console.log(err);
+                    this.setState({
+                        data: undefined
+                    });
                 })
         }
     }

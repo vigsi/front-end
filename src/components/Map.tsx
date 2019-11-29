@@ -136,13 +136,21 @@ export default class App extends React.Component<MapProps, MapState> {
                     <Typography key={"t" + v} variant="body2">{v}</Typography>
                 </div>);
         })
-        
+
+        let visibility = "hidden";
+        if (!this.props.data) {
+            visibility = "visible"
+        }
+
         return (
             <div>
                 <div id="map-legend">
                     {scale}
                 </div>
                 <div ref="mapContainer" id="map-container" style={{ width: mapWidth, height: mapHeight}} />
+                <div id="map-error" style={{ width: mapWidth, visibility: visibility }}>
+                    <Typography variant="body2">Data not loaded</Typography>
+                </div>
             </div>
         );
     }
